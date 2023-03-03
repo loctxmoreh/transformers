@@ -55,7 +55,7 @@ class RegressionPreTrainedModel(PreTrainedModel):
         if labels is None:
             return (y, )
         loss = nn.functional.mse_loss(y, labels)
-        return (loss, y, y) if self.double_output else (loss, y)
+        return loss, y
 
 
 # copied from tests/trainer/test_trainer.py
