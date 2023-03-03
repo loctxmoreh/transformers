@@ -32,12 +32,10 @@ class RegressionDataset:
 
 # copied from tests/trainer/test_trainer.py and modified
 class RegressionModelConfig(PretrainedConfig):
-    def __init__(self, a=0, b=0, random_torch=True, **kwargs):
+    def __init__(self, a=0, b=0, **kwargs):
         super().__init__(**kwargs)
         self.a = a
         self.b = b
-        self.random_torch = random_torch
-        self.hidden_size = 1
 
 
 # copied from tests/trainer/test_trainer.py and modified
@@ -50,10 +48,8 @@ class RegressionPreTrainedModel(PreTrainedModel):
         self.a = nn.Parameter(torch.tensor(config.a).float())
         self.b = nn.Parameter(torch.tensor(config.b).float())
 
-    def forward(self, input_x, labels=None, **kwargs):
+    def forward(self, input_x, labels, **kwargs):
         y = input_x * self.a + self.b
-        if labels is None:
-            return (y, )
         loss = nn.functional.mse_loss(y, labels)
         return loss, y
 
@@ -77,7 +73,7 @@ def main():
 
     train_dataset = RegressionDataset(length=64)
     eval_dataset = RegressionDataset(length=16)
-    config = RegressionModelConfig(a=a, b=b, double_output=False)
+    config = RegressionModelConfig(a=a, b=b)
     model = RegressionPreTrainedModel(config)
     args = RegressionTrainingArguments(output_dir="./regression", a=a, b=b,
                                        skip_memory_metrics=False)
