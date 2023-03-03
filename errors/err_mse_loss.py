@@ -31,22 +31,13 @@ class RegressionDataset:
 
 
 # copied from tests/trainer/test_trainer.py and modified
-class RegressionModelConfig(PretrainedConfig):
-    def __init__(self, a=0, b=0, **kwargs):
-        super().__init__(**kwargs)
-        self.a = a
-        self.b = b
-
-
-# copied from tests/trainer/test_trainer.py and modified
 class RegressionPreTrainedModel(PreTrainedModel):
-    config_class = RegressionModelConfig
     base_model_prefix = "regression"
 
-    def __init__(self, config):
-        super().__init__(config)
-        self.a = nn.Parameter(torch.tensor(config.a).float())
-        self.b = nn.Parameter(torch.tensor(config.b).float())
+    def __init__(self, a, b):
+        super().__init__(config=PretrainedConfig())
+        self.a = nn.Parameter(torch.tensor(a).float())
+        self.b = nn.Parameter(torch.tensor(b).float())
 
     def forward(self, input_x, labels, **kwargs):
         y = input_x * self.a + self.b
@@ -73,8 +64,7 @@ def main():
 
     train_dataset = RegressionDataset(length=64)
     eval_dataset = RegressionDataset(length=16)
-    config = RegressionModelConfig(a=a, b=b)
-    model = RegressionPreTrainedModel(config)
+    model = RegressionPreTrainedModel(a=a, b=b)
     args = RegressionTrainingArguments(output_dir="./regression", a=a, b=b,
                                        skip_memory_metrics=False)
 
