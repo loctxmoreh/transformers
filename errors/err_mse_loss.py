@@ -59,13 +59,13 @@ class RegressionTrainingArguments(TrainingArguments):
 
 def main():
     bs = 8
-    a = torch.ones(1000, bs) + 0.001
-    b = torch.ones(1000, bs) - 0.001
+    a = np.ones((1000, bs)) + 0.001
+    b = np.ones((1000, bs)) - 0.001
 
     train_dataset = RegressionDataset(length=64)
     eval_dataset = RegressionDataset(length=16)
     model = RegressionPreTrainedModel(a=a, b=b)
-    args = RegressionTrainingArguments(output_dir="./regression", a=a, b=b,
+    args = RegressionTrainingArguments(output_dir="./output", a=a, b=b,
                                        skip_memory_metrics=False)
 
     trainer = Trainer(
@@ -74,8 +74,12 @@ def main():
         eval_dataset=eval_dataset,
     )
 
-    #trainer.train()                # error
-    metrics = trainer.evaluate()    # error
+    # get one batch of data
+    inputs = next(iter(trainer.get_train_dataloader()))
+
+    print(trainer.training_step(model, inputs))       # error
+    trainer.train()                                   # error
+    metrics = trainer.evaluate()                      # error
 
 
 if __name__ == "__main__":
