@@ -761,6 +761,19 @@ class Pipeline(_ScikitCompat):
         self.feature_extractor = feature_extractor
         self.modelcard = modelcard
         self.framework = framework
+
+        if self.framework == "pt" and device is not None and not (isinstance(device, int) and device < 0):
+            self.model.to(device)
+
+        if device is None:
+            # `accelerate` device map
+            hf_device_map = getattr(self.model, "hf_device_map", None)
+            if hf_device_map is not None:
+                # Take the first device used by `accelerate`.
+                device = next(iter(hf_device_map.values()))
+            else:
+                device = -1
+
         if is_torch_available() and self.framework == "pt":
             if isinstance(device, torch.device):
                 self.device = device

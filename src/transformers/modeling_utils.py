@@ -2399,6 +2399,15 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 )
             elif device_map in ["balanced", "balanced_low_0"] and get_balanced_memory is None:
                 raise ValueError(f"`device_map={device_map}` requires a source install of Accelerate.")
+
+            kwargs = {"no_split_module_classes": no_split_modules}
+            if "special_dtypes" in inspect.signature(infer_auto_device_map).parameters:
+                kwargs["special_dtypes"] = special_dtypes
+            elif len(special_dtypes) > 0:
+                logger.warn(
+                    "This model has some weights that should be kept in higher precision, you need to upgrade "
+                    "`accelerate` to properly deal with them (`pip install --upgrade accelerate`)."
+                )
             if device_map != "sequential" and get_balanced_memory is not None:
                 max_memory = get_balanced_memory(
                     model,
@@ -2406,7 +2415,10 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                     no_split_module_classes=no_split_modules,
                     dtype=torch_dtype,
                     low_zero=(device_map == "balanced_low_0"),
+                    max_memory=max_memory,
+                    **kwargs,
                 )
+            kwargs["max_memory"] = max_memory
             # Make sure tied weights are tied before creating the device map.
             model.tie_weights()
             device_map = infer_auto_device_map(
