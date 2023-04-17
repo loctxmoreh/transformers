@@ -27,7 +27,6 @@ from ...test_modeling_flax_common import FlaxModelTesterMixin, floats_tensor, id
 
 if is_flax_available():
     import jax
-
     from transformers import FlaxBeitForImageClassification, FlaxBeitForMaskedImageModeling, FlaxBeitModel
 
 if is_vision_available():
@@ -141,6 +140,7 @@ class FlaxBeitModelTester(unittest.TestCase):
 
 @require_flax
 class FlaxBeitModelTest(FlaxModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (FlaxBeitModel, FlaxBeitForImageClassification, FlaxBeitForMaskedImageModeling) if is_flax_available() else ()
     )

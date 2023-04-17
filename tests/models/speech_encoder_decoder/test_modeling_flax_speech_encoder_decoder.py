@@ -33,7 +33,6 @@ if is_flax_available():
     import jax.numpy as jnp
     from flax.training.common_utils import onehot
     from flax.traverse_util import flatten_dict
-
     from transformers import (
         FlaxBartForCausalLM,
         FlaxBertForCausalLM,
@@ -74,7 +73,7 @@ class FlaxEncoderDecoderMixin:
         decoder_config,
         decoder_input_ids,
         decoder_attention_mask,
-        **kwargs,
+        **kwargs
     ):
         encoder_decoder_config = SpeechEncoderDecoderConfig.from_encoder_decoder_configs(config, decoder_config)
         self.assertTrue(encoder_decoder_config.decoder.is_decoder)
@@ -104,7 +103,7 @@ class FlaxEncoderDecoderMixin:
         decoder_config,
         decoder_input_ids,
         decoder_attention_mask,
-        **kwargs,
+        **kwargs
     ):
         encoder_model, decoder_model = self.get_encoder_decoder_model(config, decoder_config)
         enc_dec_model = SpeechEncoderDecoderModel(encoder=encoder_model, decoder=decoder_model)
@@ -143,7 +142,7 @@ class FlaxEncoderDecoderMixin:
         decoder_input_ids,
         decoder_attention_mask,
         return_dict,
-        **kwargs,
+        **kwargs
     ):
         encoder_model, decoder_model = self.get_encoder_decoder_model(config, decoder_config)
         kwargs = {"encoder_model": encoder_model, "decoder_model": decoder_model, "return_dict": return_dict}
@@ -170,7 +169,7 @@ class FlaxEncoderDecoderMixin:
         decoder_config,
         decoder_input_ids,
         decoder_attention_mask,
-        **kwargs,
+        **kwargs
     ):
         encoder_model, decoder_model = self.get_encoder_decoder_model(config, decoder_config)
         kwargs = {"encoder_model": encoder_model, "decoder_model": decoder_model}
@@ -209,7 +208,7 @@ class FlaxEncoderDecoderMixin:
         decoder_config,
         decoder_input_ids,
         decoder_attention_mask,
-        **kwargs,
+        **kwargs
     ):
         encoder_model, decoder_model = self.get_encoder_decoder_model(config, decoder_config)
         # assert that loading encoder and decoder models from configs has been correctly executed
@@ -254,7 +253,7 @@ class FlaxEncoderDecoderMixin:
         decoder_config,
         decoder_input_ids,
         decoder_attention_mask,
-        **kwargs,
+        **kwargs
     ):
         # make the decoder inputs a different shape from the encoder inputs to harden the test
         decoder_input_ids = decoder_input_ids[:, :-1]
@@ -337,7 +336,7 @@ class FlaxEncoderDecoderMixin:
         decoder_config,
         decoder_input_ids,
         decoder_attention_mask,
-        **kwargs,
+        **kwargs
     ):
         encoder_decoder_config = SpeechEncoderDecoderConfig.from_encoder_decoder_configs(config, decoder_config)
         enc_dec_model = FlaxSpeechEncoderDecoderModel(encoder_decoder_config)
@@ -407,6 +406,7 @@ class FlaxEncoderDecoderMixin:
             self.assertTrue((grad == grad_frozen).all())
 
     def check_pt_flax_equivalence(self, pt_model, fx_model, inputs_dict):
+
         pt_model.to(torch_device)
         pt_model.eval()
 
@@ -448,6 +448,7 @@ class FlaxEncoderDecoderMixin:
             self.assert_almost_equals(fx_output, pt_output_loaded.numpy(), 1e-5)
 
     def check_equivalence_pt_to_flax(self, config, decoder_config, inputs_dict):
+
         encoder_decoder_config = SpeechEncoderDecoderConfig.from_encoder_decoder_configs(config, decoder_config)
 
         pt_model = SpeechEncoderDecoderModel(encoder_decoder_config)
@@ -459,6 +460,7 @@ class FlaxEncoderDecoderMixin:
         self.check_pt_flax_equivalence(pt_model, fx_model, inputs_dict)
 
     def check_equivalence_flax_to_pt(self, config, decoder_config, inputs_dict):
+
         encoder_decoder_config = SpeechEncoderDecoderConfig.from_encoder_decoder_configs(config, decoder_config)
 
         pt_model = SpeechEncoderDecoderModel(encoder_decoder_config)
@@ -506,6 +508,7 @@ class FlaxEncoderDecoderMixin:
 
     @is_pt_flax_cross_test
     def test_pt_flax_equivalence(self):
+
         config_inputs_dict = self.prepare_config_and_inputs()
         config = config_inputs_dict.pop("config")
         decoder_config = config_inputs_dict.pop("decoder_config")

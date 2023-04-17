@@ -28,7 +28,6 @@ from transformers.utils import cached_property, is_torch_available, is_vision_av
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, floats_tensor, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -154,14 +153,13 @@ class ViTMAEModelTester:
 
 
 @require_torch
-class ViTMAEModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class ViTMAEModelTest(ModelTesterMixin, unittest.TestCase):
     """
     Here we also overwrite some of the tests of test_modeling_common.py, as ViTMAE does not use input_ids, inputs_embeds,
     attention_mask and seq_length.
     """
 
     all_model_classes = (ViTMAEModel, ViTMAEForPreTraining) if is_torch_available() else ()
-    pipeline_model_mapping = {"feature-extraction": ViTMAEModel} if is_torch_available() else {}
 
     test_pruning = False
     test_torchscript = False
@@ -211,6 +209,7 @@ class ViTMAEModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
     # overwrite from common since ViTMAEForPretraining has random masking, we need to fix the noise
     # to generate masks during test
     def check_pt_tf_models(self, tf_model, pt_model, pt_inputs_dict):
+
         # make masks reproducible
         np.random.seed(2)
 
@@ -225,6 +224,7 @@ class ViTMAEModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
         super().check_pt_tf_models(tf_model, pt_model, pt_inputs_dict)
 
     def test_save_load(self):
+
         config, inputs_dict = self.model_tester.prepare_config_and_inputs_for_common()
 
         for model_class in self.all_model_classes:

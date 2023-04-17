@@ -87,7 +87,7 @@ def _get_least_common_mult_chunk_len(config):
         return config.lsh_attn_chunk_length
     elif len(attn_types_set) == 1 and attn_types[0] == "local":
         return config.local_attn_chunk_length
-    elif len(attn_types_set) == 2 and attn_types_set == {"lsh", "local"}:
+    elif len(attn_types_set) == 2 and attn_types_set == set(["lsh", "local"]):
         return np.lcm(config.lsh_attn_chunk_length, config.local_attn_chunk_length)
     else:
         raise NotImplementedError(
@@ -103,7 +103,7 @@ def _get_min_chunk_len(config):
         return config.lsh_attn_chunk_length
     elif len(attn_types_set) == 1 and attn_types[0] == "local":
         return config.local_attn_chunk_length
-    elif len(attn_types_set) == 2 and attn_types_set == {"lsh", "local"}:
+    elif len(attn_types_set) == 2 and attn_types_set == set(["lsh", "local"]):
         return min(config.lsh_attn_chunk_length, config.local_attn_chunk_length)
     else:
         raise NotImplementedError(
@@ -519,8 +519,7 @@ class LSHSelfAttention(nn.Module, EfficientAttentionMixin):
             )
 
         # scale key vectors
-        sqrt_num = np.sqrt(self.attention_head_size)
-        key_vectors = self._len_and_dim_norm(query_key_vectors, sqrt_num)
+        key_vectors = self._len_and_dim_norm(query_key_vectors)
 
         # set query_vectors to query key vectors if LSH self attention
         query_vectors = query_vectors if query_vectors is not None else query_key_vectors
@@ -666,7 +665,7 @@ class LSHSelfAttention(nn.Module, EfficientAttentionMixin):
             # add an extra bucket for padding tokens only
             num_buckets = num_buckets + 1
             # assign padding tokens extra bucket
-            buckets_mask = attention_mask.to(torch.bool)[:, None, None, :].expand(buckets.shape)
+            buckets_mask = attention_mask.to(torch.uint8)[:, None, None, :].expand(buckets.shape)
             buckets = torch.where(
                 buckets_mask, buckets, torch.tensor(num_buckets - 1, dtype=torch.long, device=buckets.device)
             )
@@ -841,7 +840,7 @@ class LSHSelfAttention(nn.Module, EfficientAttentionMixin):
         # attention mask for LSH
         if attention_mask is not None:
             # if chunked attention, the attention mask has to correspond to LSH order
-            attention_mask = attention_mask.to(torch.bool)[:, None, :]
+            attention_mask = attention_mask.to(torch.uint8)[:, None, :]
             if not do_standard_self_attention:
                 # expand attn_mask to fit with key_value_bucket_idx shape
                 attention_mask = attention_mask[:, None, :]
@@ -909,9 +908,10 @@ class LSHSelfAttention(nn.Module, EfficientAttentionMixin):
         relevant_bucket_idx_chunk = bucket_idx[tuple(relevant_bucket_idx_chunk.transpose(0, 1))]
 
         # adapt bucket_idx for batch and hidden states for index select
-        offset = torch.arange(relevant_bucket_idx_chunk.shape[-1], device=hidden_states.device, dtype=torch.long)
         bucket_idx_batch_offset = sequence_length * (
-            batch_size * torch.div(offset, relevant_bucket_idx_chunk.shape[-1], rounding_mode="floor")
+            batch_size
+            * torch.arange(relevant_bucket_idx_chunk.shape[-1], device=hidden_states.device, dtype=torch.long)
+            // relevant_bucket_idx_chunk.shape[-1]
         )
 
         # add batch offset
@@ -969,12 +969,14 @@ class LSHSelfAttention(nn.Module, EfficientAttentionMixin):
 
         return indices
 
-    def _len_and_dim_norm(self, vectors, sqrt_num):
+    def _len_and_dim_norm(self, vectors):
         """
         length and attention head size dim normalization
         """
         vectors = self._len_norm(vectors)
-        vectors = vectors / sqrt_num
+        vectors = vectors * torch.rsqrt(
+            torch.tensor(self.attention_head_size, device=vectors.device, dtype=vectors.dtype)
+        )
         return vectors
 
     def _len_norm(self, x, epsilon=1e-6):
@@ -1112,7 +1114,9 @@ class LocalSelfAttention(nn.Module, EfficientAttentionMixin):
             )
 
         # normalize key vectors
-        key_vectors = key_vectors / np.sqrt(self.attention_head_size)
+        key_vectors = key_vectors / torch.sqrt(
+            torch.tensor(self.attention_head_size, device=key_vectors.device, dtype=key_vectors.dtype)
+        )
 
         # get sequence length indices
         indices = torch.arange(sequence_length, device=query_vectors.device).repeat(
@@ -1222,9 +1226,10 @@ class LocalSelfAttention(nn.Module, EfficientAttentionMixin):
     def _compute_attn_mask(
         self, query_indices, key_indices, attention_mask, query_key_dots_shape, do_standard_self_attention
     ):
+
         # chunk attention mask and look before and after
         if attention_mask is not None:
-            attention_mask = attention_mask.to(torch.bool)[:, None, :]
+            attention_mask = attention_mask.to(torch.uint8)[:, None, :]
 
             if not do_standard_self_attention:
                 attention_mask = self._split_seq_length_dim_to(attention_mask, -1, self.chunk_length, 1)
@@ -1276,7 +1281,7 @@ class ReformerAttention(nn.Module):
             self.self_attention = LSHSelfAttention(config)
         elif len(set(self.attn_layers)) == 1 and self.attn_layers[0] == "local":
             self.self_attention = LocalSelfAttention(config)
-        elif len(set(self.attn_layers)) == 2 and set(self.attn_layers) == {"lsh", "local"}:
+        elif len(set(self.attn_layers)) == 2 and set(self.attn_layers) == set(["lsh", "local"]):
             # get correct attn layers
             if self.attn_layers[self.layer_id] == "lsh":
                 self.self_attention = LSHSelfAttention(config)
@@ -2158,8 +2163,8 @@ class ReformerModel(ReformerPreTrainedModel):
         else:
             attention_mask = torch.cat(
                 [
-                    torch.ones(input_shape, device=device, dtype=torch.bool),
-                    torch.zeros((input_shape[0], padding_length), device=device, dtype=torch.bool),
+                    torch.ones(input_shape, device=device, dtype=torch.uint8),
+                    torch.zeros((input_shape[0], padding_length), device=device, dtype=torch.uint8),
                 ],
                 dim=-1,
             )
@@ -2294,9 +2299,9 @@ class ReformerModelWithLMHead(ReformerPreTrainedModel):
 
         return inputs_dict
 
-    def _reorder_cache(self, past_key_values, beam_idx):
+    def _reorder_cache(self, past, beam_idx):
         reord_past_buckets_states = []
-        for layer_past in past_key_values:
+        for layer_past in past:
             # buckets
             if layer_past[0] is not None:
                 reord_buckets = layer_past[0].index_select(0, beam_idx)

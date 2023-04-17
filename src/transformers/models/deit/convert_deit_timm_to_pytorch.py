@@ -19,12 +19,12 @@ import argparse
 import json
 from pathlib import Path
 
-import requests
-import timm
 import torch
-from huggingface_hub import hf_hub_download
 from PIL import Image
 
+import requests
+import timm
+from huggingface_hub import hf_hub_download
 from transformers import DeiTConfig, DeiTFeatureExtractor, DeiTForImageClassificationWithTeacher
 from transformers.utils import logging
 

@@ -18,10 +18,12 @@ from typing import Optional, Union
 
 import numpy as np
 
+from transformers.utils.generic import TensorType
+
 from ...image_processing_utils import BaseImageProcessor, BatchFeature
 from ...image_transforms import get_image_size, pad, rescale, to_channel_dimension_format
-from ...image_utils import ChannelDimension, ImageInput, make_list_of_images, to_numpy_array, valid_images
-from ...utils import TensorType, logging
+from ...image_utils import ChannelDimension, ImageInput, is_batched, to_numpy_array, valid_images
+from ...utils import logging
 
 
 logger = logging.get_logger(__name__)
@@ -48,7 +50,7 @@ class Swin2SRImageProcessor(BaseImageProcessor):
         rescale_factor: Union[int, float] = 1 / 255,
         do_pad: bool = True,
         pad_size: int = 8,
-        **kwargs,
+        **kwargs
     ) -> None:
         super().__init__(**kwargs)
 
@@ -146,7 +148,8 @@ class Swin2SRImageProcessor(BaseImageProcessor):
         do_pad = do_pad if do_pad is not None else self.do_pad
         pad_size = pad_size if pad_size is not None else self.pad_size
 
-        images = make_list_of_images(images)
+        if not is_batched(images):
+            images = [images]
 
         if not valid_images(images):
             raise ValueError(

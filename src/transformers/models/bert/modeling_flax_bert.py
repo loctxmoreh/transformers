@@ -15,11 +15,12 @@
 
 from typing import Callable, Optional, Tuple
 
+import numpy as np
+
 import flax
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
-import numpy as np
 from flax.core.frozen_dict import FrozenDict, freeze, unfreeze
 from flax.linen import combine_masks, make_causal_mask
 from flax.linen import partitioning as nn_partitioning
@@ -774,7 +775,7 @@ class FlaxBertPreTrainedModel(FlaxPreTrainedModel):
         dtype: jnp.dtype = jnp.float32,
         _do_init: bool = True,
         gradient_checkpointing: bool = False,
-        **kwargs,
+        **kwargs
     ):
         module = self.module_class(
             config=config,
@@ -1058,6 +1059,7 @@ class FlaxBertForPreTrainingModule(nn.Module):
         output_hidden_states: bool = False,
         return_dict: bool = True,
     ):
+
         # Model
         outputs = self.bert(
             input_ids,

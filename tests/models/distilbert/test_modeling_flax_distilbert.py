@@ -24,7 +24,6 @@ from ...test_modeling_flax_common import FlaxModelTesterMixin, ids_tensor, rando
 
 if is_flax_available():
     import jax.numpy as jnp
-
     from transformers.models.distilbert.modeling_flax_distilbert import (
         FlaxDistilBertForMaskedLM,
         FlaxDistilBertForMultipleChoice,
@@ -112,6 +111,7 @@ class FlaxDistilBertModelTester(unittest.TestCase):
 
 @require_flax
 class FlaxDistilBertModelTest(FlaxModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             FlaxDistilBertModel,

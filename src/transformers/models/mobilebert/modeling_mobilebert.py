@@ -1035,6 +1035,7 @@ class MobileBertForPreTraining(MobileBertPreTrainedModel):
 
 @add_start_docstrings("""MobileBert Model with a `language modeling` head on top.""", MOBILEBERT_START_DOCSTRING)
 class MobileBertForMaskedLM(MobileBertPreTrainedModel):
+
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
     _keys_to_ignore_on_load_missing = [
         "cls.predictions.decoder.weight",
@@ -1348,6 +1349,7 @@ class MobileBertForSequenceClassification(MobileBertPreTrainedModel):
 )
 # Copied from transformers.models.bert.modeling_bert.BertForQuestionAnswering with Bert->MobileBert all-casing
 class MobileBertForQuestionAnswering(MobileBertPreTrainedModel):
+
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config):
@@ -1551,6 +1553,7 @@ class MobileBertForMultipleChoice(MobileBertPreTrainedModel):
 )
 # Copied from transformers.models.bert.modeling_bert.BertForTokenClassification with Bert->MobileBert all-casing
 class MobileBertForTokenClassification(MobileBertPreTrainedModel):
+
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
 
     def __init__(self, config):

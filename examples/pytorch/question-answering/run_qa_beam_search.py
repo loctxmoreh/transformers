@@ -25,12 +25,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import datasets
-import evaluate
 from datasets import load_dataset
-from trainer_qa import QuestionAnsweringTrainer
-from utils_qa import postprocess_qa_predictions_with_beam_search
 
+import evaluate
 import transformers
+from trainer_qa import QuestionAnsweringTrainer
 from transformers import (
     DataCollatorWithPadding,
     EvalPrediction,
@@ -45,10 +44,11 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
+from utils_qa import postprocess_qa_predictions_with_beam_search
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
-check_min_version("4.28.0")
+check_min_version("4.26.0")
 
 require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/question-answering/requirements.txt")
 
@@ -236,11 +236,6 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
-
-    if training_args.should_log:
-        # The default of training_args.log_level is passive, so we set log level at info here to have that default.
-        transformers.utils.logging.set_verbosity_info()
-
     log_level = training_args.get_process_log_level()
     logger.setLevel(log_level)
     datasets.utils.logging.set_verbosity(log_level)

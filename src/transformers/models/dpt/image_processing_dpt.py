@@ -19,6 +19,9 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
+from transformers.utils import is_vision_available
+from transformers.utils.generic import TensorType
+
 from ...image_processing_utils import BaseImageProcessor, BatchFeature, get_size_dict
 from ...image_transforms import normalize, rescale, resize, to_channel_dimension_format
 from ...image_utils import (
@@ -28,13 +31,13 @@ from ...image_utils import (
     ImageInput,
     PILImageResampling,
     get_image_size,
+    is_batched,
     is_torch_available,
     is_torch_tensor,
-    make_list_of_images,
     to_numpy_array,
     valid_images,
 )
-from ...utils import TensorType, is_vision_available, logging
+from ...utils import logging
 
 
 if is_torch_available():
@@ -132,7 +135,7 @@ class DPTImageProcessor(BaseImageProcessor):
         do_normalize: bool = True,
         image_mean: Optional[Union[float, List[float]]] = None,
         image_std: Optional[Union[float, List[float]]] = None,
-        **kwargs,
+        **kwargs
     ) -> None:
         super().__init__(**kwargs)
         size = size if size is not None else {"height": 384, "width": 384}
@@ -156,7 +159,7 @@ class DPTImageProcessor(BaseImageProcessor):
         ensure_multiple_of: int = 1,
         resample: PILImageResampling = PILImageResampling.BICUBIC,
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Resize an image to target size `(size["height"], size["width"])`. If `keep_aspect_ratio` is `True`, the image
@@ -196,7 +199,7 @@ class DPTImageProcessor(BaseImageProcessor):
         image: np.ndarray,
         scale: Union[int, float],
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ):
         """
         Rescale an image by a scale factor. image = image * scale.
@@ -217,7 +220,7 @@ class DPTImageProcessor(BaseImageProcessor):
         mean: Union[float, List[float]],
         std: Union[float, List[float]],
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Normalize an image. image = (image - image_mean) / image_std.
@@ -305,7 +308,8 @@ class DPTImageProcessor(BaseImageProcessor):
         image_mean = image_mean if image_mean is not None else self.image_mean
         image_std = image_std if image_std is not None else self.image_std
 
-        images = make_list_of_images(images)
+        if not is_batched(images):
+            images = [images]
 
         if not valid_images(images):
             raise ValueError(

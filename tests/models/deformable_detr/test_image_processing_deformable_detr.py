@@ -115,6 +115,7 @@ class DeformableDetrImageProcessingTester(unittest.TestCase):
 @require_torch
 @require_vision
 class DeformableDetrImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = DeformableDetrImageProcessor if is_vision_available() else None
 
     def setUp(self):

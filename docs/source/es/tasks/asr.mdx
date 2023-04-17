@@ -159,6 +159,7 @@ A diferencia de otros collators de datos, este tiene que aplicarle un método de
 
 >>> @dataclass
 ... class DataCollatorCTCWithPadding:
+
 ...     processor: AutoProcessor
 ...     padding: Union[bool, str] = "longest"
 

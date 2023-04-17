@@ -22,7 +22,6 @@ from transformers.testing_utils import require_torch, slow, torch_device
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -225,7 +224,8 @@ class IBertModelTester:
 
 
 @require_torch
-class IBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class IBertModelTest(ModelTesterMixin, unittest.TestCase):
+
     test_pruning = False
     test_torchscript = False
     test_head_masking = False
@@ -242,18 +242,6 @@ class IBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
         )
         if is_torch_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": IBertModel,
-            "fill-mask": IBertForMaskedLM,
-            "question-answering": IBertForQuestionAnswering,
-            "text-classification": IBertForSequenceClassification,
-            "token-classification": IBertForTokenClassification,
-            "zero-shot": IBertForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
     )
 
     def setUp(self):

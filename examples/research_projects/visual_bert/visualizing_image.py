@@ -18,7 +18,6 @@
 import colorsys
 import io
 
-import cv2
 import matplotlib as mpl
 import matplotlib.colors as mplc
 import matplotlib.figure as mplfigure
@@ -26,6 +25,7 @@ import numpy as np
 import torch
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
+import cv2
 from utils import img_tensorize
 
 

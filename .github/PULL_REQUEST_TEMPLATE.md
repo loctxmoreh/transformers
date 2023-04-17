@@ -40,7 +40,7 @@ members/contributors who may be interested in your PR.
 Models:
 
 - text models: @ArthurZucker and @younesbelkada
-- vision models: @amyeroberts
+- vision models: @amyeroberts and @NielsRogge
 - speech models: @sanchit-gandhi
 - graph models: @clefourrier
 

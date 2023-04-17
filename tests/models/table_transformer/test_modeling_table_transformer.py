@@ -20,14 +20,12 @@ import math
 import unittest
 
 from huggingface_hub import hf_hub_download
-
 from transformers import TableTransformerConfig, is_timm_available, is_vision_available
 from transformers.testing_utils import require_timm, require_vision, slow, torch_device
 
 from ...generation.test_utils import GenerationTesterMixin
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, _config_zero_init, floats_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_timm_available():
@@ -176,7 +174,7 @@ class TableTransformerModelTester:
 
 
 @require_timm
-class TableTransformerModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TableTransformerModelTest(ModelTesterMixin, GenerationTesterMixin, unittest.TestCase):
     all_model_classes = (
         (
             TableTransformerModel,
@@ -184,11 +182,6 @@ class TableTransformerModelTest(ModelTesterMixin, GenerationTesterMixin, Pipelin
         )
         if is_timm_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {"feature-extraction": TableTransformerModel, "object-detection": TableTransformerForObjectDetection}
-        if is_timm_available()
-        else {}
     )
     is_encoder_decoder = True
     test_torchscript = False

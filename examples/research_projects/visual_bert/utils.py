@@ -34,13 +34,14 @@ from pathlib import Path
 from urllib.parse import urlparse
 from zipfile import ZipFile, is_zipfile
 
-import cv2
 import numpy as np
+from PIL import Image
+from tqdm.auto import tqdm
+
+import cv2
 import requests
 import wget
 from filelock import FileLock
-from PIL import Image
-from tqdm.auto import tqdm
 from yaml import Loader, dump, load
 
 
@@ -180,6 +181,7 @@ class Config:
 
     @classmethod
     def get_config_dict(cls, pretrained_model_name_or_path: str, **kwargs):
+
         cache_dir = kwargs.pop("cache_dir", None)
         force_download = kwargs.pop("force_download", False)
         resume_download = kwargs.pop("resume_download", False)
@@ -223,13 +225,14 @@ class Config:
 
 # quick compare tensors
 def compare(in_tensor):
+
     out_tensor = torch.load("dump.pt", map_location=in_tensor.device)
     n1 = in_tensor.numpy()
     n2 = out_tensor.numpy()[0]
     print(n1.shape, n1[0, 0, :5])
     print(n2.shape, n2[0, 0, :5])
     assert np.allclose(n1, n2, rtol=0.01, atol=0.1), (
-        f"{sum([1 for x in np.isclose(n1, n2, rtol=0.01, atol=0.1).flatten() if x is False])/len(n1.flatten())*100:.4f} %"
+        f"{sum([1 for x in np.isclose(n1, n2, rtol=0.01, atol=0.1).flatten() if x == False])/len(n1.flatten())*100:.4f} %"
         " element-wise mismatch"
     )
     raise Exception("tensors are all good")
@@ -297,6 +300,7 @@ def get_from_cache(
     user_agent=None,
     local_files_only=False,
 ):
+
     if cache_dir is None:
         cache_dir = TRANSFORMERS_CACHE
     if isinstance(cache_dir, Path):
@@ -351,6 +355,7 @@ def get_from_cache(
     # Prevent parallel downloads of the same file with a lock.
     lock_path = cache_path + ".lock"
     with FileLock(lock_path):
+
         # If the download just completed while the lock was activated.
         if os.path.exists(cache_path) and not force_download:
             # Even if returning early like here, the lock will be released.
@@ -401,6 +406,7 @@ def get_from_cache(
 
 
 def url_to_filename(url, etag=None):
+
     url_bytes = url.encode("utf-8")
     url_hash = sha256(url_bytes)
     filename = url_hash.hexdigest()

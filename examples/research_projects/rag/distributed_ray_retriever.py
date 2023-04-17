@@ -2,7 +2,6 @@ import logging
 import random
 
 import ray
-
 from transformers import RagConfig, RagRetriever, RagTokenizer
 from transformers.models.rag.retrieval_rag import CustomHFIndex
 

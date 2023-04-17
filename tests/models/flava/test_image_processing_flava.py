@@ -160,6 +160,7 @@ class FlavaImageProcessingTester(unittest.TestCase):
 @require_torch
 @require_vision
 class FlavaImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = FlavaImageProcessor if is_vision_available() else None
     maxDiff = None
 

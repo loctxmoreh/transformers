@@ -110,6 +110,7 @@ class BlipImageProcessingTester(unittest.TestCase):
 @require_torch
 @require_vision
 class BlipImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = BlipImageProcessor if is_vision_available() else None
 
     def setUp(self):
@@ -231,6 +232,7 @@ class BlipImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase)
 @require_torch
 @require_vision
 class BlipImageProcessingTestFourChannels(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = BlipImageProcessor if is_vision_available() else None
 
     def setUp(self):

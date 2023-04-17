@@ -32,7 +32,6 @@ from transformers.testing_utils import require_tf, require_vision, slow
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, floats_tensor, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -156,14 +155,13 @@ class TFViTMAEModelTester:
 
 
 @require_tf
-class TFViTMAEModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFViTMAEModelTest(TFModelTesterMixin, unittest.TestCase):
     """
     Here we also overwrite some of the tests of test_modeling_common.py, as ViTMAE does not use input_ids, inputs_embeds,
     attention_mask and seq_length.
     """
 
     all_model_classes = (TFViTMAEModel, TFViTMAEForPreTraining) if is_tf_available() else ()
-    pipeline_model_mapping = {"feature-extraction": TFViTMAEModel} if is_tf_available() else {}
 
     test_pruning = False
     test_onnx = False
@@ -268,6 +266,7 @@ class TFViTMAEModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCa
     # overwrite from common since TFViTMAEForPretraining has random masking, we need to fix the noise
     # to generate masks during test
     def check_pt_tf_models(self, tf_model, pt_model, tf_inputs_dict):
+
         # make masks reproducible
         np.random.seed(2)
 
@@ -335,7 +334,7 @@ class TFViTMAEModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCa
 
         config, inputs_dict = self.model_tester.prepare_config_and_inputs_for_common()
 
-        tf_main_layer_classes = {
+        tf_main_layer_classes = set(
             module_member
             for model_class in self.all_model_classes
             for module in (import_module(model_class.__module__),)
@@ -347,7 +346,7 @@ class TFViTMAEModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCa
             if isinstance(module_member, type)
             and tf.keras.layers.Layer in module_member.__bases__
             and getattr(module_member, "_keras_serializable", False)
-        }
+        )
 
         num_patches = int((config.image_size // config.patch_size) ** 2)
         noise = np.random.uniform(size=(self.model_tester.batch_size, num_patches))
@@ -454,6 +453,7 @@ class TFViTMAEModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCa
 
     @slow
     def test_model_from_pretrained(self):
+
         model = TFViTMAEModel.from_pretrained("google/vit-base-patch16-224")
         self.assertIsNotNone(model)
 

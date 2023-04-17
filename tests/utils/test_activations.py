@@ -51,7 +51,6 @@ class TestActivations(unittest.TestCase):
         get_activation("gelu_fast")
         get_activation("gelu_new")
         get_activation("gelu_python")
-        get_activation("gelu_pytorch_tanh")
         get_activation("linear")
         get_activation("mish")
         get_activation("quick_gelu")

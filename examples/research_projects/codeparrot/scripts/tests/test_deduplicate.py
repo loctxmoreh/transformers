@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from datasets import Dataset
+
 from minhash_deduplication import deduplicate_dataset, make_duplicate_clusters
 
 

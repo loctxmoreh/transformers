@@ -22,7 +22,6 @@ from transformers.testing_utils import require_torch, slow, torch_device
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -217,7 +216,8 @@ class NystromformerModelTester:
 
 
 @require_torch
-class NystromformerModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class NystromformerModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             NystromformerModel,
@@ -229,18 +229,6 @@ class NystromformerModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.Tes
         )
         if is_torch_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": NystromformerModel,
-            "fill-mask": NystromformerForMaskedLM,
-            "question-answering": NystromformerForQuestionAnswering,
-            "text-classification": NystromformerForSequenceClassification,
-            "token-classification": NystromformerForTokenClassification,
-            "zero-shot": NystromformerForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
     )
     test_pruning = False
     test_headmasking = False

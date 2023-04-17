@@ -242,7 +242,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         strip_accents=None,
         model_max_length: int = 512,
         additional_special_tokens: Optional[List[str]] = None,
-        **kwargs,
+        **kwargs
     ):
         super().__init__(
             do_lower_case=do_lower_case,
@@ -304,6 +304,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         split_tokens = []
         if self.do_basic_tokenize:
             for token in self.basic_tokenizer.tokenize(text, never_split=self.all_special_tokens):
+
                 # If the token is part of the never_split set
                 if token in self.basic_tokenizer.never_split:
                     split_tokens.append(token)
@@ -443,7 +444,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs,
+        **kwargs
     ) -> BatchEncoding:
         """
         Main method to tokenize and prepare for the model one or several sequence(s) or one or several pair(s) of
@@ -462,7 +463,6 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
             word_labels (`List[int]`, `List[List[int]]`, *optional*):
                 Word-level integer labels (for token classification tasks such as FUNSD, CORD).
         """
-
         # Input type checking for clearer error
         def _is_valid_text_input(t):
             if isinstance(t, str):
@@ -596,8 +596,9 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs,
+        **kwargs
     ) -> BatchEncoding:
+
         # Backward compatibility for 'truncation_strategy', 'pad_to_max_length'
         padding_strategy, truncation_strategy, max_length, kwargs = self._get_padding_truncation_strategies(
             padding=padding,
@@ -654,8 +655,9 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs,
+        **kwargs
     ) -> BatchEncoding:
+
         if return_offsets_mapping:
             raise NotImplementedError(
                 "return_offset_mapping is not available when using Python tokenizers. "
@@ -777,7 +779,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs,
+        **kwargs
     ) -> List[int]:
         encoded_inputs = self.encode_plus(
             text=text,
@@ -824,7 +826,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs,
+        **kwargs
     ) -> BatchEncoding:
         """
         Tokenize and prepare for the model a sequence or a pair of sequences. .. warning:: This method is deprecated,
@@ -890,7 +892,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_offsets_mapping: bool = False,
         return_length: bool = False,
         verbose: bool = True,
-        **kwargs,
+        **kwargs
     ) -> BatchEncoding:
         if return_offsets_mapping:
             raise NotImplementedError(
@@ -944,7 +946,7 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
         return_length: bool = False,
         verbose: bool = True,
         prepend_batch_axis: bool = False,
-        **kwargs,
+        **kwargs
     ) -> BatchEncoding:
         """
         Prepares a sequence or a pair of sequences so that it can be used by the model. It adds special tokens,
@@ -1213,7 +1215,8 @@ class LayoutLMv2Tokenizer(PreTrainedTokenizer):
                 )
                 if truncation_strategy == TruncationStrategy.ONLY_FIRST:
                     error_msg = (
-                        error_msg + "Please select another truncation strategy than "
+                        error_msg
+                        + "Please select another truncation strategy than "
                         f"{truncation_strategy}, for instance 'longest_first' or 'only_second'."
                     )
                 logger.error(error_msg)

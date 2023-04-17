@@ -15,9 +15,8 @@
 import os
 import unittest
 
-from huggingface_hub.utils import are_progress_bars_disabled
-
 import transformers.models.bart.tokenization_bart
+from huggingface_hub.utils import are_progress_bars_disabled
 from transformers import logging
 from transformers.testing_utils import CaptureLogger, mockenv, mockenv_context
 from transformers.utils.logging import disable_progress_bar, enable_progress_bar
@@ -109,7 +108,6 @@ class HfArgumentParserTest(unittest.TestCase):
 
     def test_advisory_warnings(self):
         # testing `logger.warning_advice()`
-        transformers.utils.logging._reset_library_root_logger()
 
         logger = logging.get_logger("transformers.models.bart.tokenization_bart")
         msg = "Testing 1, 2, 3"

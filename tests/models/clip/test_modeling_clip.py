@@ -21,8 +21,8 @@ import tempfile
 import unittest
 
 import numpy as np
-import requests
 
+import requests
 import transformers
 from transformers import CLIPConfig, CLIPTextConfig, CLIPVisionConfig
 from transformers.testing_utils import (
@@ -43,7 +43,6 @@ from ...test_modeling_common import (
     ids_tensor,
     random_attention_mask,
 )
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -68,7 +67,6 @@ if is_vision_available():
 
 if is_flax_available():
     import jax.numpy as jnp
-
     from transformers.modeling_flax_pytorch_utils import (
         convert_pytorch_state_dict_to_flax,
         load_flax_weights_in_pytorch_model,
@@ -349,6 +347,7 @@ class CLIPTextModelTester:
 
 @require_torch
 class CLIPTextModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (CLIPTextModel, CLIPTextModelWithProjection) if is_torch_available() else ()
     fx_compatible = True
     test_pruning = False
@@ -403,6 +402,7 @@ class CLIPTextModelTest(ModelTesterMixin, unittest.TestCase):
 
 class CLIPModelTester:
     def __init__(self, parent, text_kwargs=None, vision_kwargs=None, is_training=True):
+
         if text_kwargs is None:
             text_kwargs = {}
         if vision_kwargs is None:
@@ -450,9 +450,8 @@ class CLIPModelTester:
 
 
 @require_torch
-class CLIPModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class CLIPModelTest(ModelTesterMixin, unittest.TestCase):
     all_model_classes = (CLIPModel,) if is_torch_available() else ()
-    pipeline_model_mapping = {"feature-extraction": CLIPModel} if is_torch_available() else {}
     fx_compatible = True
     test_head_masking = False
     test_pruning = False
@@ -580,6 +579,7 @@ class CLIPModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
 
         for model_class in self.all_model_classes:
             with self.subTest(model_class.__name__):
+
                 # load PyTorch class
                 pt_model = model_class(config).eval()
                 # Flax models don't use the `use_cache` option and cache is not returned as a default.

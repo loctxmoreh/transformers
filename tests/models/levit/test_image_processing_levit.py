@@ -81,6 +81,7 @@ class LevitImageProcessingTester(unittest.TestCase):
 @require_torch
 @require_vision
 class LevitImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = LevitImageProcessor if is_vision_available() else None
 
     def setUp(self):

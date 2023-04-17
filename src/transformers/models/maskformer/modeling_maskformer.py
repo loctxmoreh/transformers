@@ -24,7 +24,9 @@ import numpy as np
 import torch
 from torch import Tensor, nn
 
-from ... import AutoBackbone
+from transformers import AutoBackbone
+from transformers.utils import logging
+
 from ...activations import ACT2FN
 from ...modeling_outputs import BaseModelOutputWithCrossAttentions
 from ...modeling_utils import PreTrainedModel
@@ -33,7 +35,6 @@ from ...utils import (
     add_start_docstrings,
     add_start_docstrings_to_model_forward,
     is_scipy_available,
-    logging,
     replace_return_docstrings,
     requires_backends,
 )

@@ -21,7 +21,6 @@ from transformers.testing_utils import require_tf, slow
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, floats_tensor, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -571,7 +570,8 @@ class TFRemBertModelTester:
 
 
 @require_tf
-class TFRemBertModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFRemBertModelTest(TFModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             TFRemBertModel,
@@ -584,19 +584,6 @@ class TFRemBertModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestC
         )
         if is_tf_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": TFRemBertModel,
-            "fill-mask": TFRemBertForMaskedLM,
-            "question-answering": TFRemBertForQuestionAnswering,
-            "text-classification": TFRemBertForSequenceClassification,
-            "text-generation": TFRemBertForCausalLM,
-            "token-classification": TFRemBertForTokenClassification,
-            "zero-shot": TFRemBertForSequenceClassification,
-        }
-        if is_tf_available()
-        else {}
     )
 
     test_head_masking = False

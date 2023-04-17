@@ -31,7 +31,6 @@ from ...test_modeling_common import (
     ids_tensor,
     random_attention_mask,
 )
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -300,17 +299,8 @@ class SEWModelTester:
 
 
 @require_torch
-class SEWModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class SEWModelTest(ModelTesterMixin, unittest.TestCase):
     all_model_classes = (SEWForCTC, SEWModel, SEWForSequenceClassification) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {
-            "audio-classification": SEWForSequenceClassification,
-            "automatic-speech-recognition": SEWForCTC,
-            "feature-extraction": SEWModel,
-        }
-        if is_torch_available()
-        else {}
-    )
     test_pruning = False
     test_headmasking = False
 

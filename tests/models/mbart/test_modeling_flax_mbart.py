@@ -35,7 +35,6 @@ if is_flax_available():
 
     import jax
     import jax.numpy as jnp
-
     from transformers import AutoTokenizer
     from transformers.models.mbart.modeling_flax_mbart import (
         FlaxMBartForConditionalGeneration,

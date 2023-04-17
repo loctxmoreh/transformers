@@ -23,6 +23,8 @@ from typing import Dict, Optional, Tuple, Union
 import numpy as np
 import tensorflow as tf
 
+from transformers.tf_utils import stable_softmax
+
 from ...activations_tf import get_tf_activation
 from ...modeling_tf_utils import (
     TFModelInputType,
@@ -32,7 +34,6 @@ from ...modeling_tf_utils import (
     shape_list,
     unpack_inputs,
 )
-from ...tf_utils import stable_softmax
 from ...utils import (
     ModelOutput,
     add_code_sample_docstrings,

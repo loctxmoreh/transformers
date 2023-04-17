@@ -15,10 +15,9 @@
 
 import argparse
 import collections
+import importlib.util
 import os
 import re
-
-from transformers.utils import direct_transformers_import
 
 
 # All paths are set with the intent you should run this script from the root of the repo with the command
@@ -64,7 +63,12 @@ _re_pt_models = re.compile(r"(.*)(?:Model|Encoder|Decoder|ForConditionalGenerati
 
 
 # This is to make sure the transformers module imported is the one in the repo.
-transformers_module = direct_transformers_import(TRANSFORMERS_PATH)
+spec = importlib.util.spec_from_file_location(
+    "transformers",
+    os.path.join(TRANSFORMERS_PATH, "__init__.py"),
+    submodule_search_locations=[TRANSFORMERS_PATH],
+)
+transformers_module = spec.loader.load_module()
 
 
 # Thanks to https://stackoverflow.com/questions/29916065/how-to-do-camelcase-split-in-python

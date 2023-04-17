@@ -151,6 +151,7 @@ class TFCLIPVisionEmbeddings(tf.keras.layers.Layer):
         )
 
     def build(self, input_shape: tf.TensorShape):
+
         factor = self.config.initializer_factor
 
         self.class_embedding = self.add_weight(
@@ -204,6 +205,7 @@ class TFCLIPTextEmbeddings(tf.keras.layers.Layer):
         self.config = config
 
     def build(self, input_shape: tf.TensorShape):
+
         with tf.name_scope("token_embedding"):
             self.weight = self.add_weight(
                 shape=(self.config.vocab_size, self.embed_dim),
@@ -379,6 +381,7 @@ class TFCLIPMLP(tf.keras.layers.Layer):
         )
 
     def call(self, hidden_states: tf.Tensor) -> tf.Tensor:
+
         hidden_states = self.fc1(inputs=hidden_states)
         hidden_states = self.activation_fn(hidden_states)
         hidden_states = self.fc2(inputs=hidden_states)
@@ -641,6 +644,7 @@ class TFCLIPVisionTransformer(tf.keras.layers.Layer):
         return_dict: bool,
         training: bool = False,
     ) -> Union[TFBaseModelOutputWithPooling, Tuple[tf.Tensor]]:
+
         embedding_output = self.embeddings(pixel_values=pixel_values)
         embedding_output = self.pre_layernorm(inputs=embedding_output)
 
@@ -690,6 +694,7 @@ class TFCLIPVisionMainLayer(tf.keras.layers.Layer):
         return_dict: Optional[bool] = None,
         training: bool = False,
     ) -> Union[TFBaseModelOutputWithPooling, Tuple[tf.Tensor]]:
+
         if pixel_values is None:
             raise ValueError("You have to specify pixel_values")
 
@@ -748,6 +753,7 @@ class TFCLIPMainLayer(tf.keras.layers.Layer):
         )
 
     def build(self, input_shape: tf.TensorShape):
+
         self.logit_scale = self.add_weight(
             shape=(1,),
             initializer=tf.keras.initializers.Constant(self.config.logit_scale_init_value),
@@ -768,6 +774,7 @@ class TFCLIPMainLayer(tf.keras.layers.Layer):
         return_dict: Optional[bool] = None,
         training: bool = False,
     ) -> tf.Tensor:
+
         if input_ids is None:
             raise ValueError("You have to specify either input_ids")
 
@@ -829,6 +836,7 @@ class TFCLIPMainLayer(tf.keras.layers.Layer):
         return_dict: Optional[bool] = None,
         training: bool = False,
     ) -> Union[TFCLIPOutput, Tuple[tf.Tensor]]:
+
         if input_ids is None:
             raise ValueError("You have to specify either input_ids")
         if pixel_values is None:
@@ -900,8 +908,6 @@ class TFCLIPPreTrainedModel(TFPreTrainedModel):
 
     config_class = CLIPConfig
     base_model_prefix = "clip"
-    _keys_to_ignore_on_load_missing = [r"position_ids"]
-    _keys_to_ignore_on_load_unexpected = [r"position_ids"]
 
 
 CLIP_START_DOCSTRING = r"""

@@ -1,3 +1,7 @@
+# coding=utf-8
+# Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
+# Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -16,8 +20,9 @@ from ...utils import is_sklearn_available, requires_backends
 
 
 if is_sklearn_available():
-    from scipy.stats import pearsonr, spearmanr
     from sklearn.metrics import f1_score, matthews_corrcoef
+
+    from scipy.stats import pearsonr, spearmanr
 
 
 DEPRECATION_WARNING = (

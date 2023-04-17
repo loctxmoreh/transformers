@@ -20,7 +20,6 @@ from transformers.testing_utils import require_tf, slow
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -172,7 +171,8 @@ class TFDPRModelTester:
 
 
 @require_tf
-class TFDPRModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFDPRModelTest(TFModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             TFDPRContextEncoder,
@@ -182,7 +182,6 @@ class TFDPRModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase)
         if is_tf_available()
         else ()
     )
-    pipeline_model_mapping = {"feature-extraction": TFDPRQuestionEncoder} if is_tf_available() else {}
 
     test_resize_embeddings = False
     test_missing_keys = False

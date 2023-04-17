@@ -33,7 +33,6 @@ if is_flax_available():
 
     import jax
     import jax.numpy as jnp
-
     from transformers import FlaxOPTForCausalLM, FlaxOPTModel, GPT2Tokenizer
 
 

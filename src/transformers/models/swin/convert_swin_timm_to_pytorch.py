@@ -1,12 +1,12 @@
 import argparse
 import json
 
-import requests
-import timm
 import torch
-from huggingface_hub import hf_hub_download
 from PIL import Image
 
+import requests
+import timm
+from huggingface_hub import hf_hub_download
 from transformers import AutoFeatureExtractor, SwinConfig, SwinForImageClassification
 
 

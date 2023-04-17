@@ -309,6 +309,7 @@ class FlaxOPTDecoderLayer(nn.Module):
         output_attentions: bool = True,
         deterministic: bool = True,
     ) -> Tuple[jnp.ndarray]:
+
         residual = hidden_states
 
         # 125m, 1.7B, ..., 175B applies layer norm BEFORE attention
@@ -526,7 +527,7 @@ class FlaxOPTPreTrainedModel(FlaxPreTrainedModel):
         seed: int = 0,
         dtype: jnp.dtype = jnp.float32,
         _do_init: bool = True,
-        **kwargs,
+        **kwargs
     ):
         module = self.module_class(config=config, dtype=dtype, **kwargs)
         super().__init__(config, module, input_shape=input_shape, seed=seed, dtype=dtype, _do_init=_do_init)
@@ -665,6 +666,7 @@ class FlaxOPTModule(nn.Module):
         deterministic: bool = True,
         init_cache=False,
     ):
+
         decoder_outputs = self.decoder(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -724,6 +726,7 @@ class FlaxOPTForCausalLMModule(nn.Module):
         return_dict: bool = True,
         deterministic: bool = True,
     ):
+
         outputs = self.model(
             input_ids,
             attention_mask,

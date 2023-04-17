@@ -18,6 +18,9 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
+from transformers.utils import is_vision_available
+from transformers.utils.generic import TensorType
+
 from ...image_processing_utils import BaseImageProcessor, BatchFeature, get_size_dict
 from ...image_transforms import center_crop, normalize, rescale, resize, to_channel_dimension_format
 from ...image_utils import (
@@ -27,11 +30,11 @@ from ...image_utils import (
     ImageInput,
     PILImageResampling,
     get_image_size,
-    make_list_of_images,
+    is_batched,
     to_numpy_array,
     valid_images,
 )
-from ...utils import TensorType, is_vision_available, logging
+from ...utils import logging
 
 
 if is_vision_available():
@@ -92,7 +95,7 @@ class PerceiverImageProcessor(BaseImageProcessor):
         do_normalize: bool = True,
         image_mean: Optional[Union[float, List[float]]] = None,
         image_std: Optional[Union[float, List[float]]] = None,
-        **kwargs,
+        **kwargs
     ) -> None:
         super().__init__(**kwargs)
         crop_size = crop_size if crop_size is not None else {"height": 256, "width": 256}
@@ -117,7 +120,7 @@ class PerceiverImageProcessor(BaseImageProcessor):
         crop_size: Dict[str, int],
         size: Optional[int] = None,
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Center crop an image to `(size["height"] / crop_size["height"] * min_dim, size["width"] / crop_size["width"] *
@@ -152,7 +155,7 @@ class PerceiverImageProcessor(BaseImageProcessor):
         size: Dict[str, int],
         resample: PILImageResampling = PIL.Image.BICUBIC,
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Resize an image to `(size["height"], size["width"])`.
@@ -179,7 +182,7 @@ class PerceiverImageProcessor(BaseImageProcessor):
         image: np.ndarray,
         scale: Union[int, float],
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ):
         """
         Rescale an image by a scale factor. image = image * scale.
@@ -200,7 +203,7 @@ class PerceiverImageProcessor(BaseImageProcessor):
         mean: Union[float, List[float]],
         std: Union[float, List[float]],
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Normalize an image. image = (image - image_mean) / image_std.
@@ -286,7 +289,8 @@ class PerceiverImageProcessor(BaseImageProcessor):
         image_mean = image_mean if image_mean is not None else self.image_mean
         image_std = image_std if image_std is not None else self.image_std
 
-        images = make_list_of_images(images)
+        if not is_batched(images):
+            images = [images]
 
         if not valid_images(images):
             raise ValueError(

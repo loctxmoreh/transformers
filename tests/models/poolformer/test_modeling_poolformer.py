@@ -24,7 +24,6 @@ from transformers.testing_utils import require_torch, slow, torch_device
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, floats_tensor, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -122,13 +121,9 @@ class PoolFormerModelTester:
 
 
 @require_torch
-class PoolFormerModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class PoolFormerModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (PoolFormerModel, PoolFormerForImageClassification) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {"feature-extraction": PoolFormerModel, "image-classification": PoolFormerForImageClassification}
-        if is_torch_available()
-        else {}
-    )
 
     test_head_masking = False
     test_pruning = False

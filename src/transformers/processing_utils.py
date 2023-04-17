@@ -16,18 +16,22 @@
  Processing saving/loading class for common processors.
 """
 
+import importlib.util
 import os
 from pathlib import Path
 
 from .dynamic_module_utils import custom_object_save
 from .tokenization_utils_base import PreTrainedTokenizerBase
-from .utils import PushToHubMixin, copy_func, direct_transformers_import, logging
+from .utils import PushToHubMixin, copy_func, logging
 
 
 logger = logging.get_logger(__name__)
 
 # Dynamically import the Transformers module to grab the attribute classes of the processor form their names.
-transformers_module = direct_transformers_import(Path(__file__).parent)
+spec = importlib.util.spec_from_file_location(
+    "transformers", Path(__file__).parent / "__init__.py", submodule_search_locations=[Path(__file__).parent]
+)
+transformers_module = spec.loader.load_module()
 
 
 AUTO_TO_BASE_CLASS_MAPPING = {
@@ -117,7 +121,7 @@ class ProcessorMixin(PushToHubMixin):
         if push_to_hub:
             commit_message = kwargs.pop("commit_message", None)
             repo_id = kwargs.pop("repo_id", save_directory.split(os.path.sep)[-1])
-            repo_id = self._create_repo(repo_id, **kwargs)
+            repo_id, token = self._create_repo(repo_id, **kwargs)
             files_timestamps = self._get_files_timestamps(save_directory)
         # If we have a custom config, we copy the file defining it in the folder and set the attributes so it can be
         # loaded from the Hub.
@@ -143,11 +147,7 @@ class ProcessorMixin(PushToHubMixin):
 
         if push_to_hub:
             self._upload_modified_files(
-                save_directory,
-                repo_id,
-                files_timestamps,
-                commit_message=commit_message,
-                token=kwargs.get("use_auth_token"),
+                save_directory, repo_id, files_timestamps, commit_message=commit_message, token=token
             )
 
     @classmethod

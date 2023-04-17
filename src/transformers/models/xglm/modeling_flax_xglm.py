@@ -20,10 +20,11 @@ import random
 from functools import partial
 from typing import Optional, Tuple
 
+import numpy as np
+
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
-import numpy as np
 from flax.core.frozen_dict import FrozenDict, freeze, unfreeze
 from flax.linen import combine_masks, make_causal_mask
 from flax.linen.attention import dot_product_attention_weights
@@ -561,7 +562,7 @@ class FlaxXGLMPreTrainedModel(FlaxPreTrainedModel):
         seed: int = 0,
         dtype: jnp.dtype = jnp.float32,
         _do_init: bool = True,
-        **kwargs,
+        **kwargs
     ):
         module = self.module_class(config=config, dtype=dtype, **kwargs)
         super().__init__(config, module, input_shape=input_shape, seed=seed, dtype=dtype, _do_init=_do_init)
@@ -736,6 +737,7 @@ class FlaxXGLMForCausalLMModule(nn.Module):
         return_dict: bool = True,
         deterministic: bool = True,
     ):
+
         outputs = self.model(
             input_ids,
             attention_mask,

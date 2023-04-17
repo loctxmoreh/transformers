@@ -22,7 +22,6 @@ from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 import numpy as np
-from utils_multiple_choice import MultipleChoiceDataset, Split, processors
 
 import transformers
 from transformers import (
@@ -37,6 +36,7 @@ from transformers import (
     set_seed,
 )
 from transformers.trainer_utils import is_main_process
+from utils_multiple_choice import MultipleChoiceDataset, Split, processors
 
 
 logger = logging.getLogger(__name__)

@@ -17,8 +17,8 @@ import unittest
 import numpy as np
 import pytest
 from datasets import load_dataset
-from huggingface_hub import hf_hub_download, snapshot_download
 
+from huggingface_hub import snapshot_download
 from transformers import (
     MODEL_FOR_CTC_MAPPING,
     MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING,
@@ -28,23 +28,22 @@ from transformers import (
     Speech2TextForConditionalGeneration,
     Wav2Vec2ForCTC,
     WhisperForConditionalGeneration,
+    WhisperProcessor,
 )
 from transformers.pipelines import AutomaticSpeechRecognitionPipeline, pipeline
 from transformers.pipelines.audio_utils import chunk_bytes_iter
 from transformers.pipelines.automatic_speech_recognition import _find_timestamp_sequence, chunk_iter
 from transformers.testing_utils import (
-    is_pipeline_test,
     is_torch_available,
     nested_simplify,
     require_pyctcdecode,
     require_tf,
     require_torch,
-    require_torch_gpu,
     require_torchaudio,
     slow,
 )
 
-from .test_pipelines_common import ANY
+from .test_pipelines_common import ANY, PipelineTestCaseMeta
 
 
 if is_torch_available():
@@ -55,14 +54,14 @@ if is_torch_available():
 # from .test_pipelines_common import CustomInputPipelineCommonMixin
 
 
-@is_pipeline_test
-class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
-    model_mapping = dict(
-        (list(MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING.items()) if MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING else [])
+class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase, metaclass=PipelineTestCaseMeta):
+    model_mapping = {
+        k: v
+        for k, v in (list(MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING.items()) if MODEL_FOR_SPEECH_SEQ_2_SEQ_MAPPING else [])
         + (MODEL_FOR_CTC_MAPPING.items() if MODEL_FOR_CTC_MAPPING else [])
-    )
+    }
 
-    def get_test_pipeline(self, model, tokenizer, processor):
+    def get_test_pipeline(self, model, tokenizer, feature_extractor):
         if tokenizer is None:
             # Side effect of no Fast Tokenizer class for these model, so skipping
             # But the slow tokenizer test should still run as they're quite small
@@ -71,7 +70,7 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
             # return None, None
 
         speech_recognizer = AutomaticSpeechRecognitionPipeline(
-            model=model, tokenizer=tokenizer, feature_extractor=processor
+            model=model, tokenizer=tokenizer, feature_extractor=feature_extractor
         )
 
         # test with a raw waveform
@@ -125,7 +124,7 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
             outputs = speech_recognizer(audio, return_timestamps=True)
             self.assertIsInstance(outputs["chunks"], list)
             nb_chunks = len(outputs["chunks"])
-            self.assertGreater(nb_chunks, 0)
+            self.assertGreaterThan(nb_chunks, 0)
             self.assertEqual(
                 outputs,
                 {
@@ -135,9 +134,7 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
             )
         else:
             # Non CTC models cannot use return_timestamps
-            with self.assertRaisesRegex(
-                ValueError, "^We cannot return_timestamps yet on non-ctc models apart from Whisper !$"
-            ):
+            with self.assertRaisesRegex(ValueError, "^We cannot return_timestamps yet on non-ctc models !$"):
                 outputs = speech_recognizer(audio, return_timestamps="char")
 
     @require_torch
@@ -279,6 +276,7 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
     @require_torch
     @slow
     def test_torch_large(self):
+
         speech_recognizer = pipeline(
             task="automatic-speech-recognition",
             model="facebook/wav2vec2-base-960h",
@@ -525,10 +523,14 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
                 "chunks": [{"text": " A man said to the universe, Sir, I exist.", "timestamp": (0.0, 4.26)}],
             },
         )
+        pipe = pipeline(
+            model="openai/whisper-small",
+            return_timestamps=True,
+        )
 
         output = pipe(array, chunk_length_s=10)
         self.assertDictEqual(
-            nested_simplify(output),
+            output,
             {
                 "chunks": [
                     {"text": " A man said to the universe, Sir, I exist.", "timestamp": (0.0, 5.5)},
@@ -538,7 +540,7 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
                             "tight-loan cloth that was the only garment he wore, the "
                             "cut"
                         ),
-                        "timestamp": (5.5, 11.95),
+                        "timestamp": (5.5, 11.94),
                     },
                     {
                         "text": (
@@ -546,15 +548,15 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
                             "overstrained eyes, even the soaring arena around him "
                             "with"
                         ),
-                        "timestamp": (11.95, 19.61),
+                        "timestamp": (11.94, 19.6),
                     },
                     {
                         "text": " the thousands of spectators, retrievality is not worth thinking about.",
-                        "timestamp": (19.61, 25.0),
+                        "timestamp": (19.6, 24.98),
                     },
                     {
                         "text": " His instant panic was followed by a small, sharp blow high on his chest.",
-                        "timestamp": (25.0, 29.4),
+                        "timestamp": (24.98, 30.98),
                     },
                 ],
                 "text": (
@@ -646,6 +648,7 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
     @require_torch
     @require_torchaudio
     def test_simple_s2t(self):
+
         model = Speech2TextForConditionalGeneration.from_pretrained("facebook/s2t-small-mustc-en-it-st")
         tokenizer = AutoTokenizer.from_pretrained("facebook/s2t-small-mustc-en-it-st")
         feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/s2t-small-mustc-en-it-st")
@@ -684,21 +687,6 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
             output,
             {"text": " Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel."},
         )
-        output = speech_recognizer(filename, return_timestamps=True)
-        self.assertEqual(
-            output,
-            {
-                "text": " Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel.",
-                "chunks": [
-                    {
-                        "text": (
-                            " Mr. Quilter is the apostle of the middle classes, and we are glad to welcome his gospel."
-                        ),
-                        "timestamp": (0.0, 5.44),
-                    }
-                ],
-            },
-        )
 
     @slow
     @require_torch
@@ -724,14 +712,10 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
         output_2 = speech_recognizer_2(filename)
         self.assertEqual(output, output_2)
 
-        # either use generate_kwargs or set the model's generation_config
-        # model.generation_config.task = "transcribe"
-        # model.generation_config.lang = "<|it|>"
+        processor = WhisperProcessor(feature_extractor, tokenizer)
+        model.config.forced_decoder_ids = processor.get_decoder_prompt_ids(task="transcribe", language="it")
         speech_translator = AutomaticSpeechRecognitionPipeline(
-            model=model,
-            tokenizer=tokenizer,
-            feature_extractor=feature_extractor,
-            generate_kwargs={"task": "transcribe", "language": "<|it|>"},
+            model=model, tokenizer=tokenizer, feature_extractor=feature_extractor
         )
         output_3 = speech_translator(filename)
         self.assertEqual(output_3, {"text": " Un uomo ha detto all'universo, Sir, esiste."})
@@ -1112,11 +1096,6 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
         self.assertEqual([o["stride"] for o in outs], [(90, 0, 0), (30, 20, 0)])
         self.assertEqual([o["input_values"].shape for o in outs], [(1, 90), (1, 30)])
 
-        outs = list(chunk_iter(inputs, feature_extractor, 36, 6, 6, ratio))
-        self.assertEqual(len(outs), 4)
-        self.assertEqual([o["stride"] for o in outs], [(36, 0, 6), (36, 6, 6), (36, 6, 6), (28, 6, 0)])
-        self.assertEqual([o["input_values"].shape for o in outs], [(1, 36), (1, 36), (1, 36), (1, 28)])
-
         inputs = torch.LongTensor([i % 2 for i in range(100)])
         input_values = feature_extractor(inputs, sampling_rate=feature_extractor.sampling_rate, return_tensors="pt")[
             "input_values"
@@ -1158,36 +1137,6 @@ class AutomaticSpeechRecognitionPipelineTests(unittest.TestCase):
         # 2nd arange
         output = speech_recognizer({"raw": waveform, "stride": (1000, 8000), "sampling_rate": 16_000})
         self.assertEqual(output, {"text": "XB"})
-
-    @slow
-    @require_torch_gpu
-    def test_slow_unfinished_sequence(self):
-        from transformers import GenerationConfig
-
-        pipe = pipeline(
-            "automatic-speech-recognition",
-            model="vasista22/whisper-hindi-large-v2",
-            device="cuda:0",
-        )
-        # Original model wasn't trained with timestamps and has incorrect generation config
-        pipe.model.generation_config = GenerationConfig.from_pretrained("openai/whisper-large-v2")
-
-        audio = hf_hub_download("Narsil/asr_dummy", filename="hindi.ogg", repo_type="dataset")
-
-        out = pipe(
-            audio,
-            return_timestamps=True,
-        )
-        self.assertEqual(
-            out,
-            {
-                "chunks": [
-                    {"text": "", "timestamp": (18.94, 0.0)},
-                    {"text": "मिर्ची में कितने विभिन्न प्रजातियां हैं", "timestamp": (None, None)},
-                ],
-                "text": "मिर्ची में कितने विभिन्न प्रजातियां हैं",
-            },
-        )
 
 
 def require_ffmpeg(test_case):

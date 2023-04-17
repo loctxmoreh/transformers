@@ -21,8 +21,8 @@ import tempfile
 import unittest
 
 import numpy as np
-import requests
 
+import requests
 from transformers import OwlViTConfig, OwlViTTextConfig, OwlViTVisionConfig
 from transformers.testing_utils import require_torch, require_torch_gpu, require_vision, slow, torch_device
 from transformers.utils import is_torch_available, is_vision_available
@@ -35,7 +35,6 @@ from ...test_modeling_common import (
     ids_tensor,
     random_attention_mask,
 )
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -294,6 +293,7 @@ class OwlViTTextModelTester:
 
 @require_torch
 class OwlViTTextModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (OwlViTTextModel,) if is_torch_available() else ()
     fx_compatible = False
     test_pruning = False
@@ -339,6 +339,7 @@ class OwlViTTextModelTest(ModelTesterMixin, unittest.TestCase):
 
 class OwlViTModelTester:
     def __init__(self, parent, text_kwargs=None, vision_kwargs=None, is_training=True):
+
         if text_kwargs is None:
             text_kwargs = {}
         if vision_kwargs is None:
@@ -394,13 +395,8 @@ class OwlViTModelTester:
 
 
 @require_torch
-class OwlViTModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class OwlViTModelTest(ModelTesterMixin, unittest.TestCase):
     all_model_classes = (OwlViTModel,) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {"feature-extraction": OwlViTModel, "zero-shot-object-detection": OwlViTForObjectDetection}
-        if is_torch_available()
-        else {}
-    )
     fx_compatible = False
     test_head_masking = False
     test_pruning = False

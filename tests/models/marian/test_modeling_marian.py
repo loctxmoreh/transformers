@@ -18,7 +18,6 @@ import tempfile
 import unittest
 
 from huggingface_hub.hf_api import list_models
-
 from transformers import MarianConfig, is_torch_available
 from transformers.testing_utils import require_sentencepiece, require_tokenizers, require_torch, slow, torch_device
 from transformers.utils import cached_property
@@ -26,7 +25,6 @@ from transformers.utils import cached_property
 from ...generation.test_utils import GenerationTesterMixin
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -236,21 +234,9 @@ class MarianModelTester:
 
 
 @require_torch
-class MarianModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class MarianModelTest(ModelTesterMixin, GenerationTesterMixin, unittest.TestCase):
     all_model_classes = (MarianModel, MarianMTModel) if is_torch_available() else ()
     all_generative_model_classes = (MarianMTModel,) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {
-            "conversational": MarianMTModel,
-            "feature-extraction": MarianModel,
-            "summarization": MarianMTModel,
-            "text-generation": MarianForCausalLM,
-            "text2text-generation": MarianMTModel,
-            "translation": MarianMTModel,
-        }
-        if is_torch_available()
-        else {}
-    )
     is_encoder_decoder = True
     fx_compatible = True
     test_pruning = False

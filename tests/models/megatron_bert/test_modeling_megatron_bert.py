@@ -25,7 +25,6 @@ from transformers.testing_utils import require_sentencepiece, require_tokenizers
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -267,7 +266,8 @@ class MegatronBertModelTester:
 
 
 @require_torch
-class MegatronBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class MegatronBertModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             MegatronBertModel,
@@ -282,19 +282,6 @@ class MegatronBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.Test
         )
         if is_torch_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": MegatronBertModel,
-            "fill-mask": MegatronBertForMaskedLM,
-            "question-answering": MegatronBertForQuestionAnswering,
-            "text-classification": MegatronBertForSequenceClassification,
-            "text-generation": MegatronBertForCausalLM,
-            "token-classification": MegatronBertForTokenClassification,
-            "zero-shot": MegatronBertForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
     )
     fx_compatible = True
     # test_resize_embeddings = False

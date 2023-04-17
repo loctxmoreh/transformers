@@ -2,7 +2,6 @@ import logging
 import random
 
 import ray
-
 from transformers import RagConfig, RagRetriever, RagTokenizer
 from transformers.models.rag.retrieval_rag import CustomHFIndex
 
@@ -167,6 +166,7 @@ class RagRayDistributedRetriever(RagRetriever):
         )
 
     def re_load(self):
+
         logger.info("re-loading the new dataset with embeddings")
         # access from the training loop
 

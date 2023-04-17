@@ -20,7 +20,6 @@ from transformers.testing_utils import require_tf, slow
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, floats_tensor, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -140,12 +139,10 @@ class TFXGLMModelTester:
 
 
 @require_tf
-class TFXGLMModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFXGLMModelTest(TFModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (TFXGLMModel, TFXGLMForCausalLM) if is_tf_available() else ()
     all_generative_model_classes = (TFXGLMForCausalLM,) if is_tf_available() else ()
-    pipeline_model_mapping = (
-        {"feature-extraction": TFXGLMModel, "text-generation": TFXGLMForCausalLM} if is_tf_available() else {}
-    )
     test_onnx = False
     test_missing_keys = False
     test_pruning = False

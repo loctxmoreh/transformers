@@ -1,7 +1,8 @@
 import enum
 import warnings
 
-from .. import MODEL_FOR_CAUSAL_LM_MAPPING, TF_MODEL_FOR_CAUSAL_LM_MAPPING
+from transformers import MODEL_FOR_CAUSAL_LM_MAPPING, TF_MODEL_FOR_CAUSAL_LM_MAPPING
+
 from ..utils import add_end_docstrings, is_tf_available
 from .base import PIPELINE_INIT_ARGS, Pipeline
 
@@ -96,7 +97,7 @@ class TextGenerationPipeline(Pipeline):
         prefix=None,
         handle_long_generation=None,
         stop_sequence=None,
-        **generate_kwargs,
+        **generate_kwargs
     ):
         preprocess_params = {}
         if prefix is not None:

@@ -4,7 +4,6 @@ import sys
 from unittest.mock import patch
 
 import run_glue_with_pabee
-
 from transformers.testing_utils import TestCasePlus
 
 

@@ -16,20 +16,12 @@ import unittest
 
 from transformers import MODEL_FOR_MASKED_LM_MAPPING, TF_MODEL_FOR_MASKED_LM_MAPPING, FillMaskPipeline, pipeline
 from transformers.pipelines import PipelineException
-from transformers.testing_utils import (
-    is_pipeline_test,
-    nested_simplify,
-    require_tf,
-    require_torch,
-    require_torch_gpu,
-    slow,
-)
+from transformers.testing_utils import nested_simplify, require_tf, require_torch, require_torch_gpu, slow
 
-from .test_pipelines_common import ANY
+from .test_pipelines_common import ANY, PipelineTestCaseMeta
 
 
-@is_pipeline_test
-class FillMaskPipelineTests(unittest.TestCase):
+class FillMaskPipelineTests(unittest.TestCase, metaclass=PipelineTestCaseMeta):
     model_mapping = MODEL_FOR_MASKED_LM_MAPPING
     tf_model_mapping = TF_MODEL_FOR_MASKED_LM_MAPPING
 
@@ -214,7 +206,7 @@ class FillMaskPipelineTests(unittest.TestCase):
         unmasker.tokenizer.pad_token = None
         self.run_pipeline_test(unmasker, [])
 
-    def get_test_pipeline(self, model, tokenizer, processor):
+    def get_test_pipeline(self, model, tokenizer, feature_extractor):
         if tokenizer is None or tokenizer.mask_token_id is None:
             self.skipTest("The provided tokenizer has no mask token, (probably reformer or wav2vec2)")
 
@@ -289,7 +281,7 @@ class FillMaskPipelineTests(unittest.TestCase):
 
     def run_test_targets(self, model, tokenizer):
         vocab = tokenizer.get_vocab()
-        targets = sorted(vocab.keys())[:2]
+        targets = list(sorted(vocab.keys()))[:2]
         # Pipeline argument
         fill_masker = FillMaskPipeline(model=model, tokenizer=tokenizer, targets=targets)
         outputs = fill_masker(f"This is a {tokenizer.mask_token}")
@@ -301,8 +293,8 @@ class FillMaskPipelineTests(unittest.TestCase):
             ],
         )
         target_ids = {vocab[el] for el in targets}
-        self.assertEqual({el["token"] for el in outputs}, target_ids)
-        self.assertEqual({el["token_str"] for el in outputs}, set(targets))
+        self.assertEqual(set(el["token"] for el in outputs), target_ids)
+        self.assertEqual(set(el["token_str"] for el in outputs), set(targets))
 
         # Call argument
         fill_masker = FillMaskPipeline(model=model, tokenizer=tokenizer)
@@ -315,8 +307,8 @@ class FillMaskPipelineTests(unittest.TestCase):
             ],
         )
         target_ids = {vocab[el] for el in targets}
-        self.assertEqual({el["token"] for el in outputs}, target_ids)
-        self.assertEqual({el["token_str"] for el in outputs}, set(targets))
+        self.assertEqual(set(el["token"] for el in outputs), target_ids)
+        self.assertEqual(set(el["token_str"] for el in outputs), set(targets))
 
         # Score equivalence
         outputs = fill_masker(f"This is a {tokenizer.mask_token}", targets=targets)
@@ -362,7 +354,7 @@ class FillMaskPipelineTests(unittest.TestCase):
         fill_masker = FillMaskPipeline(model=model, tokenizer=tokenizer)
 
         # top_k=2, ntargets=3
-        targets = sorted(vocab.keys())[:3]
+        targets = list(sorted(vocab.keys()))[:3]
         outputs = fill_masker(f"This is a {tokenizer.mask_token}", top_k=2, targets=targets)
 
         # If we use the most probably targets, and filter differently, we should still
@@ -377,7 +369,7 @@ class FillMaskPipelineTests(unittest.TestCase):
         fill_masker = FillMaskPipeline(model=model, tokenizer=tokenizer)
         vocab = tokenizer.get_vocab()
         # String duplicates + id duplicates
-        targets = sorted(vocab.keys())[:3]
+        targets = list(sorted(vocab.keys()))[:3]
         targets = [targets[0], targets[1], targets[0], targets[2], targets[1]]
         outputs = fill_masker(f"My name is {tokenizer.mask_token}", targets=targets, top_k=10)
 

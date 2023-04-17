@@ -21,7 +21,6 @@ from transformers.testing_utils import require_torch, require_torch_gpu, slow, t
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -196,7 +195,8 @@ class DistilBertModelTester(object):
 
 
 @require_torch
-class DistilBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class DistilBertModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             DistilBertModel,
@@ -208,18 +208,6 @@ class DistilBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCa
         )
         if is_torch_available()
         else None
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": DistilBertModel,
-            "fill-mask": DistilBertForMaskedLM,
-            "question-answering": DistilBertForQuestionAnswering,
-            "text-classification": DistilBertForSequenceClassification,
-            "token-classification": DistilBertForTokenClassification,
-            "zero-shot": DistilBertForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
     )
     fx_compatible = True
     test_pruning = True
@@ -268,6 +256,7 @@ class DistilBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCa
     def test_torchscript_device_change(self):
         config, inputs_dict = self.model_tester.prepare_config_and_inputs_for_common()
         for model_class in self.all_model_classes:
+
             # BertForMultipleChoice behaves incorrectly in JIT environments.
             if model_class == DistilBertForMultipleChoice:
                 return

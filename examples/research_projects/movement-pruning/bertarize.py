@@ -22,6 +22,7 @@ import os
 import shutil
 
 import torch
+
 from emmental.modules import MagnitudeBinarizer, ThresholdBinarizer, TopKBinarizer
 
 

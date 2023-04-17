@@ -81,6 +81,7 @@ class VideoMAEImageProcessingTester(unittest.TestCase):
 @require_torch
 @require_vision
 class VideoMAEImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = VideoMAEImageProcessor if is_vision_available() else None
 
     def setUp(self):

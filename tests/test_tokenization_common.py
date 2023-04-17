@@ -30,11 +30,10 @@ from itertools import takewhile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
 
-from huggingface_hub import HfFolder, delete_repo
+from huggingface_hub import HfFolder, delete_repo, set_access_token
 from huggingface_hub.file_download import http_get
 from parameterized import parameterized
 from requests.exceptions import HTTPError
-
 from transformers import (
     AlbertTokenizer,
     AlbertTokenizerFast,
@@ -132,6 +131,7 @@ def merge_model_tokenizer_mappings(
 
 
 class TokenizerTesterMixin:
+
     tokenizer_class = None
     rust_tokenizer_class = None
     test_slow_tokenizer = True
@@ -915,6 +915,7 @@ class TokenizerTesterMixin:
         tokenizers = self.get_tokenizers(do_lower_case=False)
         for tokenizer in tokenizers:
             with self.subTest(f"{tokenizer.__class__.__name__}"):
+
                 new_toks = [
                     AddedToken("[ABC]", normalized=False),
                     AddedToken("[DEF]", normalized=False),
@@ -952,6 +953,7 @@ class TokenizerTesterMixin:
         tokenizers = self.get_tokenizers(do_lower_case=False)
         for tokenizer in tokenizers:
             with self.subTest(f"{tokenizer.__class__.__name__}"):
+
                 if (
                     tokenizer.build_inputs_with_special_tokens.__qualname__.split(".")[0] != "PreTrainedTokenizer"
                     and "token_type_ids" in tokenizer.model_input_names
@@ -1002,6 +1004,7 @@ class TokenizerTesterMixin:
         tokenizers = self.get_tokenizers(do_lower_case=False)
         for tokenizer in tokenizers:
             with self.subTest(f"{tokenizer.__class__.__name__}"):
+
                 seq_0 = "Test this method."
                 seq_1 = "With these inputs."
 
@@ -2137,6 +2140,7 @@ class TokenizerTesterMixin:
         tokenizers = self.get_tokenizers(do_lower_case=False)  # , add_prefix_space=True)
         for tokenizer in tokenizers:
             with self.subTest(f"{tokenizer.__class__.__name__}"):
+
                 if hasattr(tokenizer, "add_prefix_space") and not tokenizer.add_prefix_space:
                     continue
 
@@ -2369,6 +2373,7 @@ class TokenizerTesterMixin:
         tokenizers = self.get_tokenizers(do_lower_case=False)
         for tokenizer in tokenizers:
             with self.subTest(f"{tokenizer.__class__.__name__}"):
+
                 if tokenizer.__class__ not in MODEL_TOKENIZER_MAPPING:
                     return
 
@@ -2469,7 +2474,7 @@ class TokenizerTesterMixin:
                 batch_encoded_sequence = tokenizer.batch_encode_plus([sequence, sequence], return_tensors="np")
 
                 # TODO: add forward through JAX/Flax when PR is merged
-                # This is currently here to make ruff happy !
+                # This is currently here to make flake8 happy !
                 if encoded_sequence is None:
                     raise ValueError("Cannot convert list to numpy tensor on  encode_plus()")
 
@@ -2484,7 +2489,7 @@ class TokenizerTesterMixin:
                     )
 
                     # TODO: add forward through JAX/Flax when PR is merged
-                    # This is currently here to make ruff happy !
+                    # This is currently here to make flake8 happy !
                     if encoded_sequence_fast is None:
                         raise ValueError("Cannot convert list to numpy tensor on  encode_plus() (fast)")
 
@@ -2951,6 +2956,7 @@ class TokenizerTesterMixin:
             tokenizer = self.rust_tokenizer_class.from_pretrained(pretrained_name, **kwargs)
 
             with self.subTest(f"{tokenizer.__class__.__name__} ({pretrained_name}, {tokenizer.__class__.__name__})"):
+
                 if is_torch_available():
                     returned_tensor = "pt"
                 elif is_tf_available():
@@ -3573,6 +3579,7 @@ class TokenizerTesterMixin:
     def test_special_tokens_initialization(self):
         for tokenizer, pretrained_name, kwargs in self.tokenizers_list:
             with self.subTest(f"{tokenizer.__class__.__name__} ({pretrained_name})"):
+
                 added_tokens = [AddedToken("<special>", lstrip=True)]
 
                 tokenizer_r = self.rust_tokenizer_class.from_pretrained(
@@ -3895,51 +3902,6 @@ class TokenizerTesterMixin:
                     # Should not raise an error
                     self.rust_tokenizer_class.from_pretrained(tmp_dir_2)
 
-    def test_clean_up_tokenization_spaces(self):
-        tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-        assert tokenizer.clean_up_tokenization_spaces is True
-
-        tokens = tokenizer.encode("This shouldn't be! He'll go.")
-        decoded = tokenizer.decode(tokens)
-        assert decoded == "[CLS] this shouldn't be! he'll go. [SEP]"
-
-        tokenizer.clean_up_tokenization_spaces = False
-        decoded = tokenizer.decode(tokens)
-        assert decoded == "[CLS] this shouldn ' t be ! he ' ll go . [SEP]"
-        assert decoded == tokenizer.decode(tokens, clean_up_tokenization_spaces=False)
-
-        # Fast from slow
-        with tempfile.TemporaryDirectory() as tmp_dir_2:
-            tokenizer.save_pretrained(tmp_dir_2)
-            tokenizer_fast = BertTokenizerFast.from_pretrained(tmp_dir_2)
-            del tokenizer
-
-        assert tokenizer_fast.clean_up_tokenization_spaces is False
-        decoded = tokenizer_fast.decode(tokens)
-        # fast and slow don't have the same output when we don't cleanup
-        # tokenization space. Here `be!` vs `be !` and `go.` vs `go .`
-        assert decoded == "[CLS] this shouldn ' t be! he ' ll go. [SEP]"
-
-        tokenizer_fast.clean_up_tokenization_spaces = True
-        assert tokenizer_fast.clean_up_tokenization_spaces is True
-
-        decoded = tokenizer_fast.decode(tokens)
-        assert decoded == "[CLS] this shouldn't be! he'll go. [SEP]"
-
-        # Slow from fast
-        with tempfile.TemporaryDirectory() as tmp_dir_2:
-            tokenizer_fast.clean_up_tokenization_spaces = False
-            tokenizer_fast.save_pretrained(tmp_dir_2)
-            tokenizer = BertTokenizer.from_pretrained(tmp_dir_2)
-
-        assert tokenizer.clean_up_tokenization_spaces is False
-        decoded = tokenizer.decode(tokens)
-        assert decoded == "[CLS] this shouldn ' t be ! he ' ll go . [SEP]"
-
-        tokenizer.clean_up_tokenization_spaces = True
-        decoded = tokenizer.decode(tokens)
-        assert decoded == "[CLS] this shouldn't be! he'll go. [SEP]"
-
 
 class TokenizerUtilTester(unittest.TestCase):
     def test_cached_files_are_used_when_internet_is_down(self):
@@ -4016,6 +3978,7 @@ class TokenizerPushToHubTester(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._token = TOKEN
+        set_access_token(TOKEN)
         HfFolder.save_token(TOKEN)
 
     @classmethod

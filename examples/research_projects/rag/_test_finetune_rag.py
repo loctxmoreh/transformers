@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import finetune_rag
-
 from transformers.file_utils import is_apex_available
 from transformers.testing_utils import (
     TestCasePlus,

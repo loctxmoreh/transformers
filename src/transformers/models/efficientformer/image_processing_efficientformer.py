@@ -18,6 +18,8 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
+from transformers.utils.generic import TensorType
+
 from ...image_processing_utils import BaseImageProcessor, BatchFeature, get_size_dict
 from ...image_transforms import (
     center_crop,
@@ -37,7 +39,7 @@ from ...image_utils import (
     to_numpy_array,
     valid_images,
 )
-from ...utils import TensorType, logging
+from ...utils import logging
 
 
 logger = logging.get_logger(__name__)
@@ -94,7 +96,7 @@ class EfficientFormerImageProcessor(BaseImageProcessor):
         do_normalize: bool = True,
         image_mean: Optional[Union[float, List[float]]] = None,
         image_std: Optional[Union[float, List[float]]] = None,
-        **kwargs,
+        **kwargs
     ) -> None:
         super().__init__(**kwargs)
         size = size if size is not None else {"height": 224, "width": 224}
@@ -119,7 +121,7 @@ class EfficientFormerImageProcessor(BaseImageProcessor):
         size: Dict[str, int],
         resample: PILImageResampling = PILImageResampling.BILINEAR,
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Resize an image to `(size["height"], size["width"])`.
@@ -156,7 +158,7 @@ class EfficientFormerImageProcessor(BaseImageProcessor):
         image: np.ndarray,
         size: Dict[str, int],
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Center crop an image. If the image is too small to be cropped to the size given, it will be padded (so the
@@ -203,7 +205,7 @@ class EfficientFormerImageProcessor(BaseImageProcessor):
         mean: Union[float, List[float]],
         std: Union[float, List[float]],
         data_format: Optional[Union[str, ChannelDimension]] = None,
-        **kwargs,
+        **kwargs
     ) -> np.ndarray:
         """
         Normalize an image. image = (image - image_mean) / image_std.

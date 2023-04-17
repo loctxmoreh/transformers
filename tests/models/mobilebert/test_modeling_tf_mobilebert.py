@@ -22,7 +22,6 @@ from transformers.testing_utils import require_tf, slow, tooslow
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -42,7 +41,8 @@ if is_tf_available():
 
 
 @require_tf
-class TFMobileBertModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFMobileBertModelTest(TFModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             TFMobileBertModel,
@@ -56,18 +56,6 @@ class TFMobileBertModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.Te
         )
         if is_tf_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": TFMobileBertModel,
-            "fill-mask": TFMobileBertForMaskedLM,
-            "question-answering": TFMobileBertForQuestionAnswering,
-            "text-classification": TFMobileBertForSequenceClassification,
-            "token-classification": TFMobileBertForTokenClassification,
-            "zero-shot": TFMobileBertForSequenceClassification,
-        }
-        if is_tf_available()
-        else {}
     )
     test_head_masking = False
     test_onnx = False
@@ -329,11 +317,6 @@ class TFMobileBertModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.Te
                 assert x is None
                 name = model.get_bias()
                 assert name is None
-
-    @slow
-    def test_keras_fit(self):
-        # Override as it is a slow test on this model
-        super().test_keras_fit()
 
     @tooslow
     def test_saved_model_creation(self):

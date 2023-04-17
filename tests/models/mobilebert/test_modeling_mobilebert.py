@@ -22,7 +22,6 @@ from transformers.testing_utils import require_sentencepiece, require_tokenizers
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -254,7 +253,8 @@ class MobileBertModelTester:
 
 
 @require_torch
-class MobileBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class MobileBertModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             MobileBertModel,
@@ -268,18 +268,6 @@ class MobileBertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCa
         )
         if is_torch_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": MobileBertModel,
-            "fill-mask": MobileBertForMaskedLM,
-            "question-answering": MobileBertForQuestionAnswering,
-            "text-classification": MobileBertForSequenceClassification,
-            "token-classification": MobileBertForTokenClassification,
-            "zero-shot": MobileBertForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
     )
     fx_compatible = True
 

@@ -20,20 +20,18 @@ import inspect
 import math
 import multiprocessing
 import os
-import tempfile
 import traceback
 import unittest
 
 import numpy as np
 import pytest
 from datasets import load_dataset
-from huggingface_hub import snapshot_download
 
+from huggingface_hub import snapshot_download
 from transformers import Wav2Vec2Config, is_tf_available
 from transformers.testing_utils import (
     CaptureLogger,
     is_flaky,
-    is_pt_tf_cross_test,
     require_librosa,
     require_pyctcdecode,
     require_tf,
@@ -44,7 +42,6 @@ from transformers.utils import is_librosa_available, is_pyctcdecode_available
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -56,7 +53,6 @@ if is_tf_available():
 
 if is_pyctcdecode_available():
     import pyctcdecode.decoder
-
     from transformers import Wav2Vec2ProcessorWithLM
     from transformers.models.wav2vec2_with_lm import processing_wav2vec2_with_lm
 
@@ -66,6 +62,7 @@ if is_librosa_available():
 
 
 def _test_wav2vec2_with_lm_invalid_pool(in_queue, out_queue, timeout):
+
     error = None
     try:
         _ = in_queue.get(timeout=timeout)
@@ -285,9 +282,9 @@ class TFWav2Vec2ModelTester:
 
 
 @require_tf
-class TFWav2Vec2ModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFWav2Vec2ModelTest(TFModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (TFWav2Vec2Model, TFWav2Vec2ForCTC) if is_tf_available() else ()
-    pipeline_model_mapping = {"feature-extraction": TFWav2Vec2Model} if is_tf_available() else {}
     test_resize_embeddings = False
     test_head_masking = False
     test_onnx = False
@@ -373,15 +370,18 @@ class TFWav2Vec2ModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.Test
         config_and_inputs = self.model_tester.prepare_config_and_inputs()
         self.model_tester.check_training(*config_and_inputs)
 
-    @unittest.skip(reason="Wav2Vec2 has no input embeddings")
+    # Wav2Vec2 has no inputs_embeds
     def test_inputs_embeds(self):
         pass
 
-    @unittest.skip(reason="Wav2Vec2 has no tokens embeddings")
+    # Wav2Vec2 cannot resize token embeddings
+    # since it has no tokens embeddings
     def test_resize_tokens_embeddings(self):
         pass
 
-    @unittest.skip(reason="Wav2Vec2 has no input embeddings")
+    # Wav2Vec2 has no inputs_embeds
+    # and thus the `get_input_embeddings` fn
+    # is not implemented
     def test_model_common_attributes(self):
         pass
 
@@ -390,71 +390,13 @@ class TFWav2Vec2ModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.Test
         model = TFWav2Vec2Model.from_pretrained("facebook/wav2vec2-base-960h")
         self.assertIsNotNone(model)
 
-    @unittest.skip(reason="Fix me! Wav2Vec2 hits OOM errors when loss is computed on full batch")
+    @unittest.skip(reason="Dataset conversion goes OOM and crashes with the default options!")
     def test_dataset_conversion(self):
-        # TODO: (Amy) - check whether skipping CTC model resolves this issue and possible resolutions for CTC
         pass
 
-    @unittest.skip(reason="Fix me! Wav2Vec2 hits OOM errors when loss is computed on full batch")
+    @unittest.skip(reason="Training goes OOM and crashes with the default options!")
     def test_keras_fit(self):
-        # TODO: (Amy) - check whether skipping CTC model resolves this issue and possible resolutions for CTC
         pass
-
-    @is_pt_tf_cross_test
-    def test_pt_tf_model_equivalence(self, allow_missing_keys=False):
-        # We override the base test here to skip loss calculation for Wav2Vec2 models because the loss is massive with
-        # the default labels and frequently overflows to inf or exceeds numerical tolerances between TF/PT
-        import torch
-
-        import transformers
-
-        for model_class in self.all_model_classes:
-            config, inputs_dict = self.model_tester.prepare_config_and_inputs_for_common()
-
-            # Output all for aggressive testing
-            config.output_hidden_states = True
-            config.output_attentions = self.has_attentions
-
-            # Make sure no sequence has all zeros as attention mask, otherwise some tests fail due to the inconsistency
-            # of the usage `1e-4`, `1e-9`, `1e-30`, `-inf`.
-            # TODO: Use a uniform value for all models, make sure all tests pass without this processing, and remove it.
-            self._make_attention_mask_non_null(inputs_dict)
-
-            pt_model_class_name = model_class.__name__[2:]  # Skip the "TF" at the beginning
-            pt_model_class = getattr(transformers, pt_model_class_name)
-
-            tf_model = model_class(config)
-            pt_model = pt_model_class(config)
-
-            tf_inputs_dict = self._prepare_for_class(inputs_dict, model_class)
-
-            # Check we can load pt model in tf and vice-versa with model => model functions
-            tf_model = transformers.load_pytorch_model_in_tf2_model(
-                tf_model, pt_model, tf_inputs=tf_inputs_dict, allow_missing_keys=allow_missing_keys
-            )
-            pt_model = transformers.load_tf2_model_in_pytorch_model(
-                pt_model, tf_model, allow_missing_keys=allow_missing_keys
-            )
-
-            # Original test: check without `labels`
-            self.check_pt_tf_models(tf_model, pt_model, tf_inputs_dict)
-
-            # Check we can load pt model in tf and vice-versa with checkpoint => model functions
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                pt_checkpoint_path = os.path.join(tmpdirname, "pt_model.bin")
-                torch.save(pt_model.state_dict(), pt_checkpoint_path)
-                tf_model = transformers.load_pytorch_checkpoint_in_tf2_model(
-                    tf_model, pt_checkpoint_path, allow_missing_keys=allow_missing_keys
-                )
-
-                tf_checkpoint_path = os.path.join(tmpdirname, "tf_model.h5")
-                tf_model.save_weights(tf_checkpoint_path)
-                pt_model = transformers.load_tf2_checkpoint_in_pytorch_model(
-                    pt_model, tf_checkpoint_path, allow_missing_keys=allow_missing_keys
-                )
-
-            # Original test: check without `labels`
-            self.check_pt_tf_models(tf_model, pt_model, tf_inputs_dict)
 
 
 @require_tf
@@ -556,15 +498,18 @@ class TFWav2Vec2RobustModelTest(TFModelTesterMixin, unittest.TestCase):
         config_and_inputs = self.model_tester.prepare_config_and_inputs()
         self.model_tester.check_training(*config_and_inputs)
 
-    @unittest.skip(reason="Wav2Vec2 has no input embeddings")
+    # Wav2Vec2 has no inputs_embeds
     def test_inputs_embeds(self):
         pass
 
-    @unittest.skip(reason="Wav2Vec2 has no tokens embeddings")
+    # Wav2Vec2 cannot resize token embeddings
+    # since it has no tokens embeddings
     def test_resize_tokens_embeddings(self):
         pass
 
-    @unittest.skip(reason="Wav2Vec2 has no input embeddings")
+    # Wav2Vec2 has no inputs_embeds
+    # and thus the `get_input_embeddings` fn
+    # is not implemented
     def test_model_common_attributes(self):
         pass
 
@@ -573,71 +518,13 @@ class TFWav2Vec2RobustModelTest(TFModelTesterMixin, unittest.TestCase):
         model = TFWav2Vec2Model.from_pretrained("facebook/wav2vec2-base-960h")
         self.assertIsNotNone(model)
 
-    @unittest.skip(reason="Fix me! Wav2Vec2 hits OOM errors when loss is computed on full batch")
+    @unittest.skip(reason="Dataset conversion goes OOM and crashes with the default options!")
     def test_dataset_conversion(self):
-        # TODO: (Amy) - check whether skipping CTC model resolves this issue and possible resolutions for CTC
         pass
 
-    @unittest.skip(reason="Fix me! Wav2Vec2 hits OOM errors when loss is computed on full batch")
+    @unittest.skip(reason="Training goes OOM and crashes with the default options!")
     def test_keras_fit(self):
-        # TODO: (Amy) - check whether skipping CTC model resolves this issue and possible resolutions for CTC
         pass
-
-    @is_pt_tf_cross_test
-    def test_pt_tf_model_equivalence(self, allow_missing_keys=False):
-        # We override the base test here to skip loss calculation for Wav2Vec2 models because the loss is massive with
-        # the default labels and frequently overflows to inf or exceeds numerical tolerances between TF/PT
-        import torch
-
-        import transformers
-
-        for model_class in self.all_model_classes:
-            config, inputs_dict = self.model_tester.prepare_config_and_inputs_for_common()
-
-            # Output all for aggressive testing
-            config.output_hidden_states = True
-            config.output_attentions = self.has_attentions
-
-            # Make sure no sequence has all zeros as attention mask, otherwise some tests fail due to the inconsistency
-            # of the usage `1e-4`, `1e-9`, `1e-30`, `-inf`.
-            # TODO: Use a uniform value for all models, make sure all tests pass without this processing, and remove it.
-            self._make_attention_mask_non_null(inputs_dict)
-
-            pt_model_class_name = model_class.__name__[2:]  # Skip the "TF" at the beginning
-            pt_model_class = getattr(transformers, pt_model_class_name)
-
-            tf_model = model_class(config)
-            pt_model = pt_model_class(config)
-
-            tf_inputs_dict = self._prepare_for_class(inputs_dict, model_class)
-
-            # Check we can load pt model in tf and vice-versa with model => model functions
-            tf_model = transformers.load_pytorch_model_in_tf2_model(
-                tf_model, pt_model, tf_inputs=tf_inputs_dict, allow_missing_keys=allow_missing_keys
-            )
-            pt_model = transformers.load_tf2_model_in_pytorch_model(
-                pt_model, tf_model, allow_missing_keys=allow_missing_keys
-            )
-
-            # Original test: check without `labels`
-            self.check_pt_tf_models(tf_model, pt_model, tf_inputs_dict)
-
-            # Check we can load pt model in tf and vice-versa with checkpoint => model functions
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                pt_checkpoint_path = os.path.join(tmpdirname, "pt_model.bin")
-                torch.save(pt_model.state_dict(), pt_checkpoint_path)
-                tf_model = transformers.load_pytorch_checkpoint_in_tf2_model(
-                    tf_model, pt_checkpoint_path, allow_missing_keys=allow_missing_keys
-                )
-
-                tf_checkpoint_path = os.path.join(tmpdirname, "tf_model.h5")
-                tf_model.save_weights(tf_checkpoint_path)
-                pt_model = transformers.load_tf2_checkpoint_in_pytorch_model(
-                    pt_model, tf_checkpoint_path, allow_missing_keys=allow_missing_keys
-                )
-
-            # Original test: check without `labels`
-            self.check_pt_tf_models(tf_model, pt_model, tf_inputs_dict)
 
 
 @require_tf
@@ -790,4 +677,7 @@ class TFWav2Vec2ModelIntegrationTest(unittest.TestCase):
     @require_pyctcdecode
     @require_librosa
     def test_wav2vec2_with_lm_invalid_pool(self):
-        run_test_in_subprocess(test_case=self, target_func=_test_wav2vec2_with_lm_invalid_pool, inputs=None)
+        timeout = os.environ.get("PYTEST_TIMEOUT", 600)
+        run_test_in_subprocess(
+            test_case=self, target_func=_test_wav2vec2_with_lm_invalid_pool, inputs=None, timeout=timeout
+        )

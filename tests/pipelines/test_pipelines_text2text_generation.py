@@ -20,22 +20,21 @@ from transformers import (
     Text2TextGenerationPipeline,
     pipeline,
 )
-from transformers.testing_utils import is_pipeline_test, require_tf, require_torch
+from transformers.testing_utils import require_tf, require_torch
 from transformers.utils import is_torch_available
 
-from .test_pipelines_common import ANY
+from .test_pipelines_common import ANY, PipelineTestCaseMeta
 
 
 if is_torch_available():
     import torch
 
 
-@is_pipeline_test
-class Text2TextGenerationPipelineTests(unittest.TestCase):
+class Text2TextGenerationPipelineTests(unittest.TestCase, metaclass=PipelineTestCaseMeta):
     model_mapping = MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING
     tf_model_mapping = TF_MODEL_FOR_SEQ_TO_SEQ_CAUSAL_LM_MAPPING
 
-    def get_test_pipeline(self, model, tokenizer, processor):
+    def get_test_pipeline(self, model, tokenizer, feature_extractor):
         generator = Text2TextGenerationPipeline(model=model, tokenizer=tokenizer)
         return generator, ["Something to write", "Something else"]
 

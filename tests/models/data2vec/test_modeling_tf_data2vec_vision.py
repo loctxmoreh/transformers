@@ -26,7 +26,6 @@ from transformers.testing_utils import require_tf, require_vision, slow
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_tf_common import TFModelTesterMixin, floats_tensor, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_tf_available():
@@ -173,7 +172,7 @@ class TFData2VecVisionModelTester:
 
 
 @require_tf
-class TFData2VecVisionModelTest(TFModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class TFData2VecVisionModelTest(TFModelTesterMixin, unittest.TestCase):
     """
     Here we also overwrite some of the tests of test_modeling_common.py, as Data2VecVision does not use input_ids, inputs_embeds,
     attention_mask and seq_length.
@@ -183,11 +182,6 @@ class TFData2VecVisionModelTest(TFModelTesterMixin, PipelineTesterMixin, unittes
         (TFData2VecVisionModel, TFData2VecVisionForImageClassification, TFData2VecVisionForSemanticSegmentation)
         if is_tf_available()
         else ()
-    )
-    pipeline_model_mapping = (
-        {"feature-extraction": TFData2VecVisionModel, "image-classification": TFData2VecVisionForImageClassification}
-        if is_tf_available()
-        else {}
     )
 
     test_pruning = False
@@ -404,7 +398,7 @@ class TFData2VecVisionModelTest(TFModelTesterMixin, PipelineTesterMixin, unittes
                     # The number of elements in the loss should be the same as the number of elements in the label
                     _, prepared_for_class = self.model_tester.prepare_config_and_inputs_for_keras_fit()
                     added_label = prepared_for_class[
-                        sorted(prepared_for_class.keys() - inputs_dict.keys(), reverse=True)[0]
+                        sorted(list(prepared_for_class.keys() - inputs_dict.keys()), reverse=True)[0]
                     ]
                     loss_size = tf.size(added_label)
 

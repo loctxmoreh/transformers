@@ -25,7 +25,6 @@ from transformers.testing_utils import require_sentencepiece, require_tokenizers
 from ...generation.test_utils import GenerationTesterMixin
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, ids_tensor
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -233,7 +232,7 @@ class BigBirdPegasusModelTester:
 
 
 @require_torch
-class BigBirdPegasusModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class BigBirdPegasusModelTest(ModelTesterMixin, GenerationTesterMixin, unittest.TestCase):
     all_model_classes = (
         (
             BigBirdPegasusModel,
@@ -245,21 +244,6 @@ class BigBirdPegasusModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineT
         else ()
     )
     all_generative_model_classes = (BigBirdPegasusForConditionalGeneration,) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {
-            "conversational": BigBirdPegasusForConditionalGeneration,
-            "feature-extraction": BigBirdPegasusModel,
-            "question-answering": BigBirdPegasusForQuestionAnswering,
-            "summarization": BigBirdPegasusForConditionalGeneration,
-            "text-classification": BigBirdPegasusForSequenceClassification,
-            "text-generation": BigBirdPegasusForCausalLM,
-            "text2text-generation": BigBirdPegasusForConditionalGeneration,
-            "translation": BigBirdPegasusForConditionalGeneration,
-            "zero-shot": BigBirdPegasusForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
-    )
     is_encoder_decoder = True
     test_missing_keys = False
     test_pruning = False
@@ -268,15 +252,6 @@ class BigBirdPegasusModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineT
     # torchscript tests are not passing for now.
     # Also torchscript is not an important feature to have in the beginning.
     test_torchscript = False
-
-    # TODO: Fix the failed tests
-    def is_pipeline_test_to_skip(
-        self, pipeline_test_casse_name, config_class, model_architecture, tokenizer_name, processor_name
-    ):
-        if pipeline_test_casse_name == "QAPipelineTests" and not tokenizer_name.endswith("Fast"):
-            return True
-
-        return False
 
     # overwrite from GenerationTesterMixin to solve problem
     # with conflicting random seeds

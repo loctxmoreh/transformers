@@ -24,7 +24,6 @@ from ...test_modeling_flax_common import FlaxModelTesterMixin, ids_tensor, rando
 
 if is_flax_available():
     import jax.numpy as jnp
-
     from transformers.models.roformer.modeling_flax_roformer import (
         FlaxRoFormerForMaskedLM,
         FlaxRoFormerForMultipleChoice,
@@ -117,6 +116,7 @@ class FlaxRoFormerModelTester(unittest.TestCase):
 
 @require_flax
 class FlaxRoFormerModelTest(FlaxModelTesterMixin, unittest.TestCase):
+
     test_head_masking = True
 
     all_model_classes = (

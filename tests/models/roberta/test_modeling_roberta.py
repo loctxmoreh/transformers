@@ -23,7 +23,6 @@ from transformers.testing_utils import TestCasePlus, require_torch, slow, torch_
 from ...generation.test_utils import GenerationTesterMixin
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, floats_tensor, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -367,7 +366,8 @@ class RobertaModelTester:
 
 
 @require_torch
-class RobertaModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class RobertaModelTest(ModelTesterMixin, GenerationTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             RobertaForCausalLM,
@@ -382,19 +382,6 @@ class RobertaModelTest(ModelTesterMixin, GenerationTesterMixin, PipelineTesterMi
         else ()
     )
     all_generative_model_classes = (RobertaForCausalLM,) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": RobertaModel,
-            "fill-mask": RobertaForMaskedLM,
-            "question-answering": RobertaForQuestionAnswering,
-            "text-classification": RobertaForSequenceClassification,
-            "text-generation": RobertaForCausalLM,
-            "token-classification": RobertaForTokenClassification,
-            "zero-shot": RobertaForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
-    )
     fx_compatible = True
 
     def setUp(self):

@@ -26,12 +26,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import datasets
-import quant_trainer
 from datasets import load_dataset, load_metric
-from trainer_quant_qa import QuestionAnsweringTrainer
-from utils_qa import postprocess_qa_predictions
 
+import quant_trainer
 import transformers
+from trainer_quant_qa import QuestionAnsweringTrainer
 from transformers import (
     AutoTokenizer,
     DataCollatorWithPadding,
@@ -47,6 +46,7 @@ from transformers import (
 from transformers.trainer_utils import SchedulerType, get_last_checkpoint
 from transformers.utils import check_min_version
 from transformers.utils.versions import require_version
+from utils_qa import postprocess_qa_predictions
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.

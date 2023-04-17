@@ -22,12 +22,12 @@ import os
 import sys
 
 import numpy as np
-import onnxruntime
 import torch
+
+import onnxruntime
+import transformers
 from bart_onnx.generation_onnx import BARTBeamSearchGenerator
 from bart_onnx.reduce_onnx_size import remove_dup_initializers
-
-import transformers
 from transformers import BartForConditionalGeneration, BartTokenizer
 
 

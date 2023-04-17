@@ -74,6 +74,7 @@ class DPTImageProcessingTester(unittest.TestCase):
 @require_torch
 @require_vision
 class DPTImageProcessingTest(ImageProcessingSavingTestMixin, unittest.TestCase):
+
     image_processing_class = DPTImageProcessor if is_vision_available() else None
 
     def setUp(self):

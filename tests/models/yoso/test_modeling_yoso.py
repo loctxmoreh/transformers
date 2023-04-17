@@ -22,7 +22,6 @@ from transformers.testing_utils import require_torch, slow, torch_device
 
 from ...test_configuration_common import ConfigTester
 from ...test_modeling_common import ModelTesterMixin, floats_tensor, ids_tensor, random_attention_mask
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -281,7 +280,8 @@ class YosoModelTester:
 
 
 @require_torch
-class YosoModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class YosoModelTest(ModelTesterMixin, unittest.TestCase):
+
     all_model_classes = (
         (
             YosoModel,
@@ -299,18 +299,6 @@ class YosoModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
     test_torchscript = False
 
     all_generative_model_classes = ()
-    pipeline_model_mapping = (
-        {
-            "feature-extraction": YosoModel,
-            "fill-mask": YosoForMaskedLM,
-            "question-answering": YosoForQuestionAnswering,
-            "text-classification": YosoForSequenceClassification,
-            "token-classification": YosoForTokenClassification,
-            "zero-shot": YosoForSequenceClassification,
-        }
-        if is_torch_available()
-        else {}
-    )
 
     def setUp(self):
         self.model_tester = YosoModelTester(self)

@@ -35,7 +35,6 @@ from ...test_modeling_common import (
     ids_tensor,
     random_attention_mask,
 )
-from ...test_pipeline_mixin import PipelineTesterMixin
 
 
 if is_torch_available():
@@ -305,17 +304,8 @@ class HubertModelTester:
 
 
 @require_torch
-class HubertModelTest(ModelTesterMixin, PipelineTesterMixin, unittest.TestCase):
+class HubertModelTest(ModelTesterMixin, unittest.TestCase):
     all_model_classes = (HubertForCTC, HubertForSequenceClassification, HubertModel) if is_torch_available() else ()
-    pipeline_model_mapping = (
-        {
-            "audio-classification": HubertForSequenceClassification,
-            "automatic-speech-recognition": HubertForCTC,
-            "feature-extraction": HubertModel,
-        }
-        if is_torch_available()
-        else {}
-    )
     fx_compatible = True
     test_pruning = False
     test_headmasking = False
